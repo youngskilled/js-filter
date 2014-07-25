@@ -28,10 +28,11 @@
 				success: function(data) {
 					$this.filter = data;
 					if($this.set.debug === true) console.log('var $this.filter', $this.filter);
+					//Filter away other categories here
 					priv.buildFilter.apply($this);
 					priv.enableEvents.apply($this);
-					$this.set.limit = data.limit;
-					$this.set.pages = Math.ceil(data.items.length / $this.set.limit);
+					$this.set.limit = $this.filter.settings.limit;
+					$this.set.pages = Math.ceil($this.filter.productIds.length / $this.set.limit);
 
 					//If previously filtered. Run filter else load all products.
 					if($this.set.currentHash !== '') {
@@ -40,7 +41,7 @@
 					} else {
 						//We clone the array objects in the array however keep references. 
 						//Now we can sort the array without screwing original order.
-						$this.set.currentItems = $this.filter.items.slice(0);
+						$this.set.currentItems = $this.filter.products.slice(0);
 						//Replace even on first load if debug: true
 						if($this.set.debug === true) priv.renderItems.apply($this);
 					}
@@ -55,37 +56,40 @@
 				html = '',
 				create = '',
 				tplAdditions = {},
-				len = $this.filter.desc.param_types.length,
+				len = $this.filter.settings.filter.length,
 				splitSizeEnd = $this.set.splitSizes !== false ? '</' + $this.set.splitSizes.match(/<([a-z]+)/)[1] + '>' : '';
 
 
 			//Sort ends up in a different part of the filter attrs. Needs to be looped through seperately.
-			if($this.filter.sort !== undefined) {
+			if($this.filter.settings.sort !== undefined) {
 				var $sort = $('#sort'),
-					initDesc = $this.filter.sort.init !== undefined ? $this.filter.sort.init : '';
+					initDesc = $this.filter.settings.sort.init !== undefined ? $this.filter.settings.sort.init : '';
 
 				create = $sort.data('create');
 				tplAdditions = $this.set.filterOptions[cat] || {};
 
-				for(var sort in $this.filter.sort) {
+				for(var sort in $this.filter.settings.sort) {
 					if(sort === 'init') continue;
-					if($this.filter.sort[sort].asc) html += priv.buildFilterTemplate.call($this, create, 'sort-' + sort + '-asc', '["' + sort + '","asc"]', $this.filter.sort[sort].asc, tplAdditions);
-					if($this.filter.sort[sort].dsc) html += priv.buildFilterTemplate.call($this, create, 'sort-' + sort + '-dsc', '["' + sort + '","dsc"]', $this.filter.sort[sort].dsc, tplAdditions);
+					if($this.filter.settings.sort[sort].asc) html += priv.buildFilterTemplate.call($this, create, 'sort-' + sort + '-asc', '["' + sort + '","asc"]', $this.filter.settings.sort[sort].asc, tplAdditions);
+					if($this.filter.settings.sort[sort].dsc) html += priv.buildFilterTemplate.call($this, create, 'sort-' + sort + '-dsc', '["' + sort + '","dsc"]', $this.filter.settings.sort[sort].dsc, tplAdditions);
 				}
 
 				if(tplAdditions.wrapperGroup !== undefined) html = tplAdditions.wrapperGroup + html + '</' + tplAdditions.wrapperGroup.match(/<([a-z]+)/)[1] + '>';
 				if(create === 'fakeSelect') {
 					html = priv.buildFilterTemplate.call($this, 'start_' + create, '', '', initDesc, tplAdditions) + html;
 					html = '<div class="filter-value fake-select"><span data-orig-text="' + initDesc + '">' + initDesc + '</span><ul class="ul-clean fake-select-list">' + html + '</ul></div>';
+				} else if(create === 'a') {
+
 				}
 				if(create === 'select' || create === 'multiSelect') html = '<select class="filter-value"' + (create === 'multiSelect' ? ' multiple="multiple"' : '') + '><option value="0">' + initDesc + '</option>' + html + '</select>';
+
 
 				$sort.append(html);
 			}
 
 			for (var i = 0; i < len; i++) {
-				var cat = $this.filter.desc.param_types[i],
-					catDesc = $this.filter.desc.param_descs[cat],
+				var cat = $this.filter.settings.filter[i][0],
+					catDesc = $this.filter.settings.filter[i][1],
 					$filter = $filters.filter('#' + cat),
 					type = $filter.data('type'),
 					subHtml = '',
@@ -98,20 +102,20 @@
 				create = $filter.data('create');
 				tplAdditions = $this.set.filterOptions[cat] || {};
 
-				for (var underCat in $this.filter.desc[cat]) {
+				for (var underCat in $this.filter.filter[cat]) {
 					
-					desc = $this.filter.desc[cat][underCat].name;
+					desc = underCat;
 					
-					if($this.filter.desc[cat][underCat].data) {
-						if($this.filter.desc[cat][underCat].data.color !== '') {
-							desc = [desc, $this.filter.desc[cat][underCat].data.color];
-						} else if($this.filter.desc[cat][underCat].data.hex !== '') {
-							desc = [desc, $this.filter.desc[cat][underCat].data.hex];
+					if($this.filter.filterDescriptions[cat] !== undefined && $this.filter.filterDescriptions[cat][underCat] !== undefined) {
+						if($this.filter.filterDescriptions[cat][underCat].color_img !== undefined) {
+							desc = [desc, $this.filter.filterDescriptions[cat][underCat].color_img];
+						} else if($this.filter.filterDescriptions[cat][underCat].color_hex !== '') {
+							desc = [desc, $this.filter.filterDescriptions[cat][underCat].color_hex];
 						}
 					}
 					
 					if(desc.indexOf('###') !== -1) {
-						//Handling of tree categories.
+						//Handling of tree categories. -> Changed to ::
 						whichGroup = 'tree';
 						treeParts = desc.split('###');
 						desc = treeParts.pop();
@@ -125,7 +129,7 @@
 						}
 						subHtml += priv.buildFilterTemplate.call($this, create, cat + '-' + underCat, underCat, desc, tplAdditions);
 					} else if($this.set.splitSizes !== false && cat === 'size') {
-						//Handling of split size groups.
+						//Handling of split size groups. -> needs to be added to filterDescriptions.
 						whichGroup = 'size';
 						sizeTables = underCat.split('_');
 						if(currGroup !== sizeTables[0]) {
@@ -203,7 +207,7 @@
 			if(typeof desc === 'object') {
 				valObj.desc = desc[0];
 				if(background) {
-					style = (desc[1] && desc[1].substr(0,1) === '#') ? 'background-color: ' + desc[1] : 'background-image: url(\'' + DYN + 'attributes/' + desc[1] + '\')';
+					style = (desc[1] && desc[1].substr(0,4) === 'http') ? 'background-image: url(\'' + desc[1] + '\')' : (desc[1].substr(0,1) === '#') ? 'background-color: ' + desc[1] : 'background-color: #' + desc[1];
 				}
 			}
 
@@ -461,8 +465,8 @@
 			//Collect all items to be printed out based on filter.
 			var $this = this,
 				filteredBy = $this.set.filteredBy,
-				paramTypes = $this.filter.desc.param_types,
-				totalItems = $this.filter.total_items,
+				paramTypes = $this.filter.settings.filter,
+				totalItems = $this.filter.filter,
 				filters = 0,
 				i = 0,
 				tmpArr = [],
@@ -518,14 +522,14 @@
 					//If only one filter is chosen, remove disabled on that one remove latestCat
 					//Previous filter.
 
-					if($this.set.latestCat !== paramTypes[i]) {
+					if($this.set.latestCat !== paramTypes[i][0]) {
 						var catTotal = 0,
 							$item = {},
 							prop = '';
 
 						tmpArr = [];
 
-						for(var subCat in totalItems[paramTypes[i]]) {
+						for(var subCat in totalItems[paramTypes[i][0]]) {
 							//Do these sub categories have any of our items?
 							$item = $this.find('#' + paramTypes[i] + '-' + subCat);
 							if($item.length === 0) continue;
@@ -676,18 +680,19 @@
 			//Parse template add data.
 			//use text between {} as keys.
 			var $this = this,
-				template = $this.filter.templates.item,
+				template = $this.filter.settings.template.item,
+				priceTemplate = '',
 				images = [],
 				numImages = 0,
 				clearImageLine = false,
 				imageStr = '',
-				variations = obj.variations !== undefined ? obj.variations : false,
+				/*variations = obj.variations !== undefined ? obj.variations : false,*/
 				varArr = [],
 				len = images.length;
-			
+
 			if($this.set.debug === true && typeof images !== 'object') { console.warn('You should be using the latest version of the JSFilter class. Incl in v2'); }
 
-			if(variations !== false) {
+			/*if(variations !== false) {
 				//Create an array of the product variations.
 				for (var i = 0; i < variations.length; i++) {
 					varArr[i] = variations[i].id;
@@ -710,13 +715,26 @@
 						images = obj.image[imageArr];
 					}
 				}
+			}*/
+
+			if(obj.price.showAsOnSale) {
+				priceTemplate = $this.filter.settings.template.price.discounted;
+			} else {
+				priceTemplate = $this.filter.settings.template.price.default;
+			}
+
+			if(typeof obj.image === 'object') {
+				images = obj.image;
+			} else {
+				images[0] = obj.image;
 			}
 
 			obj.hash = $this.set.currentHash.indexOf('#') === -1 ? '#' + $this.set.currentHash : $this.set.currentHash;
+			obj.category = $this.set.category;
 
 			//Split URI's if needed
-			obj.category_uri = (obj.category_uri === null) ? '' : (obj.category_uri.indexOf(':') !== -1) ? obj.category_uri.slice(0,obj.category_uri.indexOf(':')) : obj.category_uri;
-			obj.root_uri = (obj.root_uri === null) ? '' : (obj.root_uri.indexOf(':') !== -1) ? obj.root_uri.slice(0,obj.root_uri.indexOf(':')) : obj.root_uri;
+			/*obj.category_uri = (obj.category_uri === null) ? '' : (obj.category_uri.indexOf(':') !== -1) ? obj.category_uri.slice(0,obj.category_uri.indexOf(':')) : obj.category_uri;*/
+			/*obj.root_uri = (obj.root_uri === null) ? '' : (obj.root_uri.indexOf(':') !== -1) ? obj.root_uri.slice(0,obj.root_uri.indexOf(':')) : obj.root_uri;*/
 
 			if(template.indexOf('{rep_') !== -1) {
 				template = template.replace(/<[^<]*(\{rep_(.+?)\})[^>]*>/g, function(value, sel, text) {
@@ -730,6 +748,10 @@
 					return str;
 				});
 			}
+
+			obj.price = priceTemplate.replace(/\{(.+?)\}/g, function(value, text) {
+				return obj.price[text];
+			})
 
 			template = template.replace(/\{(.+?)\}/g, function(value, text) {
 				//Replace text with property only if property exists.
