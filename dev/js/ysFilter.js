@@ -34,6 +34,8 @@
 					$this.set.limit = $this.filter.settings.limit;
 					$this.set.pages = Math.ceil($this.filter.productIds.length / $this.set.limit);
 
+					priv.gatherItems.apply($this, [true]);
+
 					//If previously filtered. Run filter else load all products.
 					if($this.set.currentHash !== '') {
 						priv.gatherItems.apply($this);
@@ -218,6 +220,8 @@
 			backgroundStyle = background ? ' style="' + style + '"' : '';
 			backgroundText = background ? '' : valObj.desc;
 
+			id = id.replace(/\W/g, '-');
+
 			//Repeating elements
 			if(create === 'a') return wrapStart + '<a id="' + id + '" class="' + classes + ' filter-value" href="#"' + backgroundStyle + ' data-value=\'' + val + '\'' + attrs + '>' + backgroundText + '</a>' + wrapEnd;
 			if(create === 'select' || create === 'multiSelect') return '<option id="' + id + '" value="' + val + '">' + valObj.desc + '</option>';
@@ -338,13 +342,15 @@
 
 			//Previous latestCat
 			for(var firstCat in $this.set.filteredBy) {
-				if(filter === 'page' || filter === 'sort') continue;
+				if(firstCat === 'page' || firstCat === 'sort' || firstCat === 'initCategory') continue;
 				$this.set.latestCat = firstCat;
 				break;
 			}
 
 		},
 		updateFilter: function(type, cat, val) {
+			//Must update
+
 			//Updates filter object.
 			var $this = this,
 				currVal = null,
@@ -461,7 +467,7 @@
 			if($this.set.onFilterChanged !== undefined) $this.set.onFilterChanged();
 
 		},
-		gatherItems: function() {
+		gatherItems: function(init) {
 			//Collect all items to be printed out based on filter.
 			var $this = this,
 				filteredBy = $this.set.filteredBy,
@@ -473,18 +479,36 @@
 				newItems = [],
 				renderItems = [];
 
+			if(init) {
+				//Get category currently in
+				filteredBy['initCategory'] = $this.set.category;
+			}
+
+			console.log('var filter', filteredBy);
 			//Could build on previous items to be even quicker? Instead of parsing the whole object...
 			for(var filter in filteredBy) {
 				//Runs per set of filters.
 				if(filter === 'page' || filter === 'sort') continue;
-				if(filteredBy[filter].type === 's1') {
-					newItems = $this.filter.total_items[filter][filteredBy[filter].value];
+				if(filter === 'initCategory') {
+					var categories = $this.filter.filter.categories;
+
+					for(var category in categories) {
+						if(category.indexOf(filteredBy[filter]) === 0) {
+							tmpArr[i] = categories[category];
+							i++;
+						}
+					}
+					//Join them together to create newItems.
+					newItems = Array.prototype.concat.apply([], tmpArr);
+
+				} else if(filteredBy[filter].type === 's1') {
+					newItems = $this.filter.filter[filter][filteredBy[filter].value];
 				} else if(filteredBy[filter].type === 'sor') {
 					//Concatente all arrays
 					//Product only needs to match one value.
 					for (i = 0; i < filteredBy[filter].value.length; i++) {
 						//Runs per set of values in a filter.
-						tmpArr[i] = $this.filter.total_items[filter][filteredBy[filter].value[i]];
+						tmpArr[i] = $this.filter.filter[filter][filteredBy[filter].value[i]];
 					}
 					//Join them together to create newItems.
 					newItems = Array.prototype.concat.apply([], tmpArr);
@@ -493,7 +517,7 @@
 					//All values must be present to show product.
 					for (i = 0; i < filteredBy[filter].value.length; i++) {
 						//TODO: run intersect on arrays
-						tmpArr[i] = $this.filter.total_items[filter][filteredBy[filter].value[i]];
+						tmpArr[i] = $this.filter.filter[filter][filteredBy[filter].value[i]];
 						newItems = newItems;
 					}
 				}
@@ -530,12 +554,15 @@
 						tmpArr = [];
 
 						for(var subCat in totalItems[paramTypes[i][0]]) {
+
+							var id = subCat.replace(/\W/g, '-');
+
 							//Do these sub categories have any of our items?
-							$item = $this.find('#' + paramTypes[i] + '-' + subCat);
+							$item = $this.find('#' + paramTypes[i][0] + '-' + id);
 							if($item.length === 0) continue;
 							prop = $item.prop('tagName').toLowerCase();
 
-							tmpArr = priv.intersect(renderItems, totalItems[paramTypes[i]][subCat]);
+							tmpArr = priv.intersect(renderItems, totalItems[paramTypes[i][0]][subCat]);
 							//console.log('category: ', subCat, ' items: ', tmpArr);
 							if(tmpArr.length > 0) {
 								//Items in that category make available
@@ -557,11 +584,12 @@
 							}
 						}
 
+
 						//If the whole category is empty hide category.
 						if(catTotal > 0) {
-							$this.find('#' + paramTypes[i]).removeClass('disabled').attr('title', catTotal);
+							$this.find('#' + paramTypes[i][0]).removeClass('disabled').attr('title', catTotal);
 						} else {
-							$this.find('#' + paramTypes[i]).addClass('disabled').removeAttr('title');
+							$this.find('#' + paramTypes[i][0]).addClass('disabled').removeAttr('title');
 						}
 					}
 				}
@@ -780,8 +808,9 @@
 				item = '';
 
 			for (var i = 0; i < arr.length; i++) {
-				item = $this.filter.items_keys[arr[i]];
-				newArr[i] = $this.filter.items[item];
+				item = $this.filter.productIds[arr[i]];
+
+				newArr[i] = $this.filter.products[item];
 			}
 
 			return newArr;
@@ -866,7 +895,9 @@
 
 			for (var filter in obj) {
 				//Handling of arrays of values.
-				if(filter === 'page') {
+				if(filter === 'initCategory') {
+					continue;
+				} else if(filter === 'page') {
 					if(obj[filter] > 1) strHash += filter + '=' + obj[filter] + '&';
 				} else {
 					switch (obj[filter].type) {
