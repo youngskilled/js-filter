@@ -1,16 +1,20 @@
+var hej;
 ;(function($, window) {
 
 	//Private Methods
 	var priv = {
 		init: function() {
 			var $this = this;
-			//Read url hash
-			$this.set.filteredBy = priv.dehashify.apply($this, [window.location.hash]);
-			if($this.set.debug === true) console.log('var ', $this.set.filteredBy);
-			$this.set.currentHash = window.location.hash;
+			
+			//Allow css to handle display while loading.
 			$this.addClass('ysFilter-loading');
-			if($this.set.currentHash !== '') {
+			$this.set.currentHash = window.location.hash;
+
+            if($this.set.currentHash == '#') {
+            	$this.set.currentHash = '';
+			} else {
 				$this.addClass('ysFilter-filtered');
+				//Adds the hash to relevant URLs that are not products.
 				if($this.set.updateWHash !== false) {
 					$('.' + $this.set.updateWHash).each(function() {
 						var href = $(this).attr('href');
@@ -18,8 +22,8 @@
 					});
 				}
 			}
-			if(parseInt($this.set.filteredBy.page) > 1) $this.find('.prev').closest('.paging').show();
 			//Ajax in products - json string
+			//This should test if there is a locally stored JSON that is relevant (relevant == correct MD5 hash)
 			$.ajax({
 				url: $this.set.url,
 				type: 'GET',
@@ -27,25 +31,111 @@
 				dataType: 'JSON',
 				success: function(data) {
 					$this.filter = data;
-					if($this.set.debug === true) console.log('var $this.filter', $this.filter);
-					priv.buildFilter.apply($this);
-					priv.enableEvents.apply($this);
-					$this.set.limit = data.limit;
-					$this.set.pages = Math.ceil(data.items.length / $this.set.limit);
+					if($this.set.debug === true) console.log('var $this.filter', $.extend({}, $this.filter) );
 
-					//If previously filtered. Run filter else load all products.
+					//We want to run a pre-filter here to remove excess filter options if a catgeory has been set.
+					priv.preFilter.apply($this);
+					//Build filter now we know which products are left and what they can be filtered with.
+					priv.buildFilter.apply($this);
+					//Enable events on filters.
+					priv.enableEvents.apply($this);
+
+					//Set some global variables.
+					$this.set.limit = $this.filter.settings.limit;
+                    $this.set.pages = Math.ceil(Object.keys($this.filter.productIds).length / $this.set.limit);
+
+					//If previously filtered. Filter and render relevant products.
 					if($this.set.currentHash !== '') {
+                        $this.set.filteredBy = priv.dehashify.apply($this, [window.location.hash]);
+						if($this.set.filteredBy.page > 1) {
+							$this.find($this.set.filterOptions.paging.prevBtnClass).closest('.paging').show();
+							$this.set.initialLoad = true;
+						}
+
 						priv.gatherItems.apply($this);
 						priv.reSelect.apply($this);
 					} else {
 						//We clone the array objects in the array however keep references. 
 						//Now we can sort the array without screwing original order.
-						$this.set.currentItems = $this.filter.items.slice(0);
-						//Replace even on first load if debug: true
-						if($this.set.debug === true) priv.renderItems.apply($this);
+						if($this.set.preSort !== false) {
+							priv.gatherItems.apply($this);
+						} else {
+							//Replace even on first load if debug: true
+							if($this.set.debug === true) 
+								priv.gatherItems.apply($this);
+	                    }
 					}
 				}
 			});
+
+		},
+		preFilter: function() {
+			var $this = this,
+				renderItems = [],
+				tmpArr = [],
+				i = 0,
+				categories = null,
+				paramTypes = null,
+				totalItems = null,
+				filterItem = '',
+				cat = '';
+
+			//Remove excess data from filter object.
+			$this.set.initItems = $this.filter.products.slice(0);
+			$this.set.currentItems = $this.set.initItems;
+
+			if($this.set.category !== undefined && $this.set.category !== '/') {
+				//Returns:
+				//A refined category object for creating the filters.
+				//Relevant products to the current category
+
+				//Removes possible first slash so the categories can be matched.
+				if($this.set.category.indexOf('/') === 0) $this.set.category = $this.set.category.slice(1);
+
+				//Select relevant products.
+				categories = $this.filter.filter.categories;
+				paramTypes = $this.filter.settings.filter;
+				totalItems = $this.filter.filter;
+
+				for(var category in categories) {
+					if(category.indexOf($this.set.category) === 0) {
+						tmpArr[i] = categories[category];
+						//console.log('√√√ ', categories[category], category);
+						i++;
+					} else {
+						//console.log('!!! ', categories[category], category);
+					}
+				}
+
+				//These are all the relevant items for the rest of the filtering.
+				renderItems = Array.prototype.concat.apply([], tmpArr);
+				
+				$this.set.relevantFilters = {};
+
+				for (j = 0; j < paramTypes.length; j++) {
+					cat = paramTypes[j][0].replace(/_\d/, '');
+					filterItem = totalItems[cat];
+
+					for(var subCat in filterItem) {
+						tmpArr = [];
+
+						//Are there relevant items in this filter?
+						tmpArr = priv.intersect(renderItems, filterItem[subCat]);
+						
+						if(tmpArr.length > 0) {
+							//Add them to "relevantFilters"
+							if($this.set.relevantFilters[cat] === undefined) $this.set.relevantFilters[cat] = {};
+							$this.set.relevantFilters[cat][subCat] = tmpArr;
+						}
+					}
+				}
+
+				//Modify array keys to return item objs show only unique items.
+				renderItems = priv.unique(renderItems);
+				$this.set.initItems = priv.keysToItems.apply($this, [renderItems]);
+				$this.set.currentItems = $this.set.initItems;
+
+			}
 
 		},
 		buildFilter: function() {
@@ -55,28 +145,29 @@
 				html = '',
 				create = '',
 				tplAdditions = {},
-				len = $this.filter.desc.param_types.length,
+				len = $this.filter.settings.filter.length,
 				splitSizeEnd = $this.set.splitSizes !== false ? '</' + $this.set.splitSizes.match(/<([a-z]+)/)[1] + '>' : '';
 
-
 			//Sort ends up in a different part of the filter attrs. Needs to be looped through seperately.
-			if($this.filter.sort !== undefined) {
+			if($this.filter.settings.sort !== undefined) {
 				var $sort = $('#sort'),
-					initDesc = $this.filter.sort.init !== undefined ? $this.filter.sort.init : '';
+					initDesc = $this.filter.settings.sort.init !== undefined ? $this.filter.settings.sort.init : '';
 
 				create = $sort.data('create');
-				tplAdditions = $this.set.filterOptions[cat] || {};
+				tplAdditions = $this.set.filterOptions['sort'] || {};
 
-				for(var sort in $this.filter.sort) {
+				for(var sort in $this.filter.settings.sort) {
 					if(sort === 'init') continue;
-					if($this.filter.sort[sort].asc) html += priv.buildFilterTemplate.call($this, create, 'sort-' + sort + '-asc', '["' + sort + '","asc"]', $this.filter.sort[sort].asc, tplAdditions);
-					if($this.filter.sort[sort].dsc) html += priv.buildFilterTemplate.call($this, create, 'sort-' + sort + '-dsc', '["' + sort + '","dsc"]', $this.filter.sort[sort].dsc, tplAdditions);
+					if($this.filter.settings.sort[sort].asc) html += priv.buildFilterTemplate.call($this, create, 'sort-' + sort + '-asc', '["' + sort + '","asc"]', $this.filter.settings.sort[sort].asc, tplAdditions);
+					if($this.filter.settings.sort[sort].dsc) html += priv.buildFilterTemplate.call($this, create, 'sort-' + sort + '-dsc', '["' + sort + '","dsc"]', $this.filter.settings.sort[sort].dsc, tplAdditions);
 				}
 
 				if(tplAdditions.wrapperGroup !== undefined) html = tplAdditions.wrapperGroup + html + '</' + tplAdditions.wrapperGroup.match(/<([a-z]+)/)[1] + '>';
 				if(create === 'fakeSelect') {
-					html = priv.buildFilterTemplate.call($this, 'start_' + create, '', '', initDesc, tplAdditions) + html;
-					html = '<div class="filter-value fake-select"><span data-orig-text="' + initDesc + '">' + initDesc + '</span><ul class="ul-clean fake-select-list">' + html + '</ul></div>';
+					if($this.set.repeatStartFakeSelect) html = priv.buildFilterTemplate.call($this, 'start_' + create, '', '', initDesc, tplAdditions) + html;
+					html = '<div class="filter-value fake-select"><span class="title" data-orig-text="' + initDesc + '">' + initDesc + '</span><ul class="ul-clean fake-select-list">' + html + '</ul></div>';
+				} else if(create === 'a') {
+
 				}
 				if(create === 'select' || create === 'multiSelect') html = '<select class="filter-value"' + (create === 'multiSelect' ? ' multiple="multiple"' : '') + '><option value="0">' + initDesc + '</option>' + html + '</select>';
 
@@ -84,49 +175,77 @@
 			}
 
 			for (var i = 0; i < len; i++) {
-				var cat = $this.filter.desc.param_types[i],
-					catDesc = $this.filter.desc.param_descs[cat],
-					$filter = $filters.filter('#' + cat),
+				var catId = $this.filter.settings.filter[i][0],
+					cat = catId.replace(/_\d/, ''),
+					catDesc = $this.filter.settings.filter[i][1],
+					$filter = $filters.filter('#' + catId),
+					relevantFilters = $this.set.relevantFilters || $this.filter.filter,
 					type = $filter.data('type'),
+					maxLength = $filter.data('max-length') || null,
+					numItems = 0,
 					subHtml = '',
 					desc = '',
 					whichGroup = null,
 					currGroup = null,
-					treeParts = [];
+					depth = null,
+					filterId = '',
+					categoriesDesc = [],
+					categoriesId = [],
+					uniqueCategories = {};
 				
 				html = '';
 				create = $filter.data('create');
-				tplAdditions = $this.set.filterOptions[cat] || {};
+				tplAdditions = $this.set.filterOptions[catId] || {};
 
-				for (var underCat in $this.filter.desc[cat]) {
-					
-					desc = $this.filter.desc[cat][underCat].name;
-					
-					if($this.filter.desc[cat][underCat].data) {
-						if($this.filter.desc[cat][underCat].data.color !== '') {
-							desc = [desc, $this.filter.desc[cat][underCat].data.color];
-						} else if($this.filter.desc[cat][underCat].data.hex !== '') {
-							desc = [desc, $this.filter.desc[cat][underCat].data.hex];
-						}
+				for (var underCat in relevantFilters[cat]) {
+					desc = underCat;
+
+					if($this.filter.filterDescriptions[cat] !== undefined && $this.filter.filterDescriptions[cat][underCat] !== undefined) {
+                        if($this.filter.filterDescriptions[cat][underCat].color_img !== undefined) {
+							desc = [desc, $this.filter.filterDescriptions[cat][underCat].color_img];
+						} else if($this.filter.filterDescriptions[cat][underCat].color_hex !== undefined) {
+							desc = [desc, $this.filter.filterDescriptions[cat][underCat].color_hex];
+						} else {
+                            desc = $this.filter.filterDescriptions[cat][underCat];
+                        }
 					}
-					
-					if(desc.indexOf('###') !== -1) {
-						//Handling of tree categories.
-						whichGroup = 'tree';
-						treeParts = desc.split('###');
-						desc = treeParts.pop();
-						if(currGroup !== treeParts.join('')) {
-							if(currGroup !== null) {
-								//Add subhtml to html only when the group has changed.
-								html += priv.buildFilterTemplate.call($this, 'group_' + create, '', subHtml, currGroup, tplAdditions);
-								subHtml = '';
+
+					if(desc.indexOf('::') !== -1) {
+						//Filter out categories not in initial category. 
+						//Products can be even found in other categories that are not relevant.
+						if(underCat.indexOf($this.set.category) !== 0) continue;
+						//Split descriptions of the different categories.
+						categoriesDesc = desc.split('::');
+						categoriesId = underCat.split('/');
+						//Are we working with a specific depth of category?
+						if($filter.data('depth') !== undefined) {
+							depth = $filter.data('depth') - 1;
+							//If there is no head desc/Id skip
+                            if(categoriesDesc[depth] == undefined) continue;
+							filterId = categoriesId[depth];
+							desc = categoriesDesc[depth];
+							if(uniqueCategories[filterId] === undefined) {
+								//Only print out unique categories.
+								html += priv.buildFilterTemplate.call($this, create, catId + '-' + filterId, filterId, desc, tplAdditions);
+								uniqueCategories[filterId] = true;
 							}
-							currGroup = treeParts.join('');
+						} else {
+							//Handling of tree categories.
+							desc = categoriesDesc.pop();
+							whichGroup = 'tree';
+							if(currGroup !== categoriesDesc.join('')) {
+								if(currGroup !== null) {
+									//Add subhtml to html only when the group has changed.
+									html += priv.buildFilterTemplate.call($this, 'group_' + create, '', subHtml, currGroup, tplAdditions);
+									subHtml = '';
+								}
+								currGroup = categoriesDesc.join('');
+							}
+							subHtml += priv.buildFilterTemplate.call($this, create, cat + '-' + underCat, underCat, desc, tplAdditions);
 						}
-						subHtml += priv.buildFilterTemplate.call($this, create, cat + '-' + underCat, underCat, desc, tplAdditions);
 					} else if($this.set.splitSizes !== false && cat === 'size') {
-						//Handling of split size groups.
-						whichGroup = 'size';
+						//Handling of split size groups. -> needs to be added to filterDescriptions.
+                        whichGroup = 'size';
 						sizeTables = underCat.split('_');
 						if(currGroup !== sizeTables[0]) {
 							if(currGroup !== null) {
@@ -140,6 +259,7 @@
 						//Handling of all other JSParams.
 						html += priv.buildFilterTemplate.call($this, create, cat + '-' + underCat, underCat, desc, tplAdditions);
 					}
+					numItems++;
 				}
 
 				if(currGroup !== null) {
@@ -149,13 +269,20 @@
 						html += $this.set.splitSizes + subHtml + splitSizeEnd;
 					}
 				}
+				if(numItems > maxLength && maxLength !== null) {
+					if($this.set.hideAncestor !== false) {
+						$filter.closest('.' + $this.set.hideAncestor).addClass('too-many-options');
+					} else {
+						$filter.addClass('too-many-options');
+					}
+				}
 				if(tplAdditions.wrapperGroup !== undefined) html = tplAdditions.wrapperGroup + html + '</' + tplAdditions.wrapperGroup.match(/<([a-z]+)/)[1] + '>';
 				if(create === 'fakeSelect') {
-					subHtml = priv.buildFilterTemplate.call($this, 'start_' + create, '', underCat, catDesc, tplAdditions);
-					html = '<div class="filter-value fake-select"><span data-orig-text="' + catDesc + '">' + catDesc + '</span><ul class="ul-clean fake-select-list">' + subHtml + html + '</ul></div>';
+					if($this.set.repeatStartFakeSelect) subHtml = priv.buildFilterTemplate.call($this, 'start_' + create, '', underCat, catDesc, tplAdditions);
+					html = '<div class="filter-value fake-select"><span class="title" data-orig-text="' + catDesc + '">' + catDesc + '</span><ul class="ul-clean fake-select-list">' + subHtml + html + '</ul></div>';
 				}
 				if(create === 'select' || create === 'multiSelect') html = '<select name="' + cat + '" class="filter-value"' + (create === 'multiSelect' ? ' multiple="multiple"' : '') + '><option value="0">' + catDesc + '</option>' + html + '</select>';
-				$filter.append(html);
+                $filter.append(html);
 			}
 
 			//Filter is loaded and ready to use.
@@ -203,7 +330,7 @@
 			if(typeof desc === 'object') {
 				valObj.desc = desc[0];
 				if(background) {
-					style = (desc[1] && desc[1].substr(0,1) === '#') ? 'background-color: ' + desc[1] : 'background-image: url(\'' + DYN + 'attributes/' + desc[1] + '\')';
+					style = (desc[1] && desc[1].substr(0,4) === 'http') ? 'background-image: url(\'' + desc[1] + '\')' : (desc[1].substr(0,1) === '#') ? 'background-color: ' + desc[1] : 'background-color: #' + desc[1];
 				}
 			}
 
@@ -213,6 +340,8 @@
 
 			backgroundStyle = background ? ' style="' + style + '"' : '';
 			backgroundText = background ? '' : valObj.desc;
+
+			id = id.replace(/\W/g, '-');
 
 			//Repeating elements
 			if(create === 'a') return wrapStart + '<a id="' + id + '" class="' + classes + ' filter-value" href="#"' + backgroundStyle + ' data-value=\'' + val + '\'' + attrs + '>' + backgroundText + '</a>' + wrapEnd;
@@ -247,9 +376,15 @@
 					cat = $(this).closest('.filter-group').attr('id'),
 					val = $(this).data('value');
 				
-				if(cat !== 'sort') $this.set.latestCat = cat;
+				if(type !== 's' && type !== 's1') {
+					$this.set.latestCat = cat;
+                } else { 
+                	if(!$(this).hasClass('selected')) {
+						$(this).closest('.filter-group').find('.filter-value').removeClass($this.set.filterSelectedClass);
+					}
+                }
 
-				if(!$(this).hasClass('disabled')) {
+				if(!$(this).hasClass('disabled') && !$(this).parent().hasClass('disabled')) {
 					$(this).toggleClass($this.set.filterSelectedClass);
 					priv.updateFilter.apply($this, [type, cat, val]);
 				}
@@ -283,10 +418,11 @@
 				window.location.hash = $this.set.currentHash;
 				$this.find('.filter-group .' + $this.set.filterSelectedClass).removeClass($this.set.filterSelectedClass);
 				$this.find('.filter-group option').removeAttr('disabled').filter(':selected').removeAttr('selected');
+				if($this.set.onFilterChanged !== undefined) $this.set.onFilterChanged();
 				priv.gatherItems.apply($this);
 			});
 
-			$this.on('click', '.next', function(e) {
+			$this.on('click', $this.set.filterOptions.paging.nextBtnClass, function(e) {
 				e.preventDefault();
 				//Next Page
 				if($this.set.filteredBy.page < $this.set.pages) {
@@ -299,7 +435,7 @@
 				return false;
 			});
 
-			$this.on('click', '.prev', function(e) {
+			$this.on('click', $this.set.filterOptions.paging.prevBtnClass, function(e) {
 				e.preventDefault();
 				//Prev Page
 				if($this.set.filteredBy.page > 1) {
@@ -311,7 +447,7 @@
 				}
 			});
 
-			$this.on('click', '.all', function(e) {
+			$this.on('click', $this.set.filterOptions.paging.allBtnClass, function(e) {
 				e.preventDefault();
 				var $paging = $(this).closest('.paging');
 				//Prev Page
@@ -334,13 +470,14 @@
 
 			//Previous latestCat
 			for(var firstCat in $this.set.filteredBy) {
-				if(filter === 'page' || filter === 'sort') continue;
+				if(firstCat === 'page' || firstCat === 'sort') continue;
 				$this.set.latestCat = firstCat;
 				break;
 			}
 
 		},
 		updateFilter: function(type, cat, val) {
+			//Must update
 			//Updates filter object.
 			var $this = this,
 				currVal = null,
@@ -348,10 +485,11 @@
 
 			if(type === 's1' || type === 's') {
 				//Select One
-				if($this.set.filteredBy[cat] !== undefined && ($this.set.filteredBy[cat].value === val || val === 0 || val === '0' || val === 'remove')) {
-					delete $this.set.filteredBy[cat];
+				currVal = $this.set.filteredBy[cat] !== undefined ? (typeof $this.set.filteredBy[cat].value === 'object') ? $this.set.filteredBy[cat].value.join(',') : $this.set.filteredBy[cat].value : '';
+				if(currVal === val || val === 0 || val === '0' || val === 'remove') {
+                    delete $this.set.filteredBy[cat];
 					priv.reSelectLatestFilter.apply($this);
-				} else {
+                 } else {
 					$this.set.filteredBy[cat] = {type: type, value: val};
 				}
 			} else if(type === 'sand' || type === 'sor') {
@@ -433,15 +571,19 @@
 
 				if(typeof filteredBy[filter].value === 'object' && filter !== 'sort') {
 					for(var i = 0; i < filteredBy[filter].value.length; i++) {
+						filterVal = filteredBy[filter].value[i].replace(/\W/g, '-');
 						if(type === 'select' || type === 'multiSelect') {
-							$filter.find('#' + filter + '-' + filteredBy[filter].value[i]).attr('selected', true);
+							$filter.find('#' + filter + '-' + filterVal).attr('selected', true);
 						} else {
-							$filter.find('#' + filter + '-' + filteredBy[filter].value[i]).addClass($this.set.filterSelectedClass);
+							if(type === 'fakeSelect') {
+								$filter.find('#' + filter + '-' + filterVal).closest('li').addClass($this.set.filterSelectedClass);
+							} else {
+								$filter.find('#' + filter + '-' + filterVal).addClass($this.set.filterSelectedClass);
+							}
 						}
 					}
 				} else {
-					$filterOpt = $filter.find('#' + filter + '-' + filterVal);
-
+					$filterOpt = $filter.find('#' + filter + '-' + filterVal.replace(/\W/g, '-'));
 					if(type === 'select' || type === 'multiSelect') {
 						$filterOpt.attr('selected', true);
 					} else if(type === 'fakeSelect') {
@@ -460,27 +602,57 @@
 		gatherItems: function() {
 			//Collect all items to be printed out based on filter.
 			var $this = this,
+				catRegexp = /_\d$/,
 				filteredBy = $this.set.filteredBy,
-				paramTypes = $this.filter.desc.param_types,
-				totalItems = $this.filter.total_items,
+				paramTypes = $this.filter.settings.filter,
+				totalItems = $this.set.relevantFilters || $this.filter.filter,
 				filters = 0,
 				i = 0,
+				filterValue = '',
 				tmpArr = [],
 				newItems = [],
 				renderItems = [];
+
+			var matchUri = function(filter, value) {
+				var urlArray = [],
+					j = 0,
+					catDepth = parseInt(filter.slice(-1), 10) - 1,
+					filterId = filter.replace(catRegexp, ''),
+					uriValue = (value === $this.set.undefinedCatId) ? undefined: value;
+
+				for(var urls in totalItems[filterId]) {
+					if(urls.indexOf($this.set.category) !== 0) continue;
+
+					//Does URI exist in URL?
+					if(uriValue === urls.split('/')[catDepth]) {
+						urlArray[j] = totalItems[filterId][urls];
+						j++;
+					}							
+				}
+				return Array.prototype.concat.apply([], urlArray);
+			}
 
 			//Could build on previous items to be even quicker? Instead of parsing the whole object...
 			for(var filter in filteredBy) {
 				//Runs per set of filters.
 				if(filter === 'page' || filter === 'sort') continue;
 				if(filteredBy[filter].type === 's1') {
-					newItems = $this.filter.total_items[filter][filteredBy[filter].value];
+					if(catRegexp.test(filter)) {
+						newItems = matchUri(filter, filteredBy[filter].value);
+					} else {
+						newItems = totalItems[filter][filteredBy[filter].value];
+					}
 				} else if(filteredBy[filter].type === 'sor') {
 					//Concatente all arrays
-					//Product only needs to match one value.
+					//Product only needs to match one value to be relevant.
 					for (i = 0; i < filteredBy[filter].value.length; i++) {
 						//Runs per set of values in a filter.
-						tmpArr[i] = $this.filter.total_items[filter][filteredBy[filter].value[i]];
+						if(catRegexp.test(filter)) {
+							tmpArr[i] = matchUri(filter, filteredBy[filter].value[i]);
+						} else {
+							console.log('var ', filteredBy[filter].value[i], totalItems[filter][filteredBy[filter].value[i]]);
+							tmpArr[i] = totalItems[filter][filteredBy[filter].value[i]];
+						}
 					}
 					//Join them together to create newItems.
 					newItems = Array.prototype.concat.apply([], tmpArr);
@@ -489,7 +661,7 @@
 					//All values must be present to show product.
 					for (i = 0; i < filteredBy[filter].value.length; i++) {
 						//TODO: run intersect on arrays
-						tmpArr[i] = $this.filter.total_items[filter][filteredBy[filter].value[i]];
+						tmpArr[i] = totalItems[filter][filteredBy[filter].value[i]];
 						newItems = newItems;
 					}
 				}
@@ -505,11 +677,25 @@
 				//Same here if the intersect returns nothing.
 				//Clone filter items to return everything back to original state.
 				//Objects retain references
-				$this.set.currentItems = $this.filter.items.slice(0);
+				$this.set.currentItems = $this.set.initItems.slice(0);
 				$this.find('.filter-group').find('.disabled,.' + $this.set.filterSelectedClass).removeClass('disabled ' + $this.set.filterSelectedClass);
 				$this.find('.filter-group option').removeAttr('disabled').filter(':selected').removeAttr('selected');
-			} else {
 
+				for (i = 0; i < paramTypes.length; i++) {
+					var $filter = $this.find('#' + paramTypes[i][0]),
+						maxLength = $filter.data('max-length') || null;
+
+					if(maxLength !== null) {
+						if(Object.keys(totalItems[paramTypes[i][0]]).length > maxLength) {
+							if($this.set.hideAncestor !== false) {
+								$filter.closest('.' + $this.set.hideAncestor).addClass('too-many-options');
+							} else {
+								$filter.addClass('too-many-options');
+							}
+						}
+					}
+				}
+			} else {
 				//Disable options in the other filters
 				//Now we should know which products are left and be able to see if they are available in the other filters.
 				//Latest filter show all from that filter (skip it then).
@@ -517,47 +703,113 @@
 					//Don't change the category we're in.
 					//If only one filter is chosen, remove disabled on that one remove latestCat
 					//Previous filter.
-
-					if($this.set.latestCat !== paramTypes[i]) {
+					if($this.set.latestCat !== paramTypes[i][0]) {
 						var catTotal = 0,
+							catId = paramTypes[i][0].replace(/_\d$/, '');
+							itemTotal = 0,
+							$filter = $this.find('#' + paramTypes[i][0]),
 							$item = {},
-							prop = '';
+							create = $filter.data('create') || null,
+							maxLength = $filter.data('max-length') || null,
+							prop = '',
+							compiledObj = {},
+							updateFilterObj = totalItems[catId],
+							depth = ($filter.data('depth') - 1) || null;
 
 						tmpArr = [];
 
-						for(var subCat in totalItems[paramTypes[i]]) {
-							//Do these sub categories have any of our items?
-							$item = $this.find('#' + paramTypes[i] + '-' + subCat);
-							if($item.length === 0) continue;
-							prop = $item.prop('tagName').toLowerCase();
 
-							tmpArr = priv.intersect(renderItems, totalItems[paramTypes[i]][subCat]);
-							//console.log('category: ', subCat, ' items: ', tmpArr);
-							if(tmpArr.length > 0) {
+						var updateFilters = function(intersectOn) {
+							var intersected = priv.intersect(renderItems, intersectOn);
+
+							if(intersected.length > 0) {
+
 								//Items in that category make available
 								if(prop === 'option' || prop === 'input') {
 									//Remove attr disabled
 									$item.removeAttr('disabled');
 								} else {
-									//Remove class disabled
-									$item.removeClass('disabled').attr('title', tmpArr.length);
+									if(create === 'fakeSelect') {
+										//Remove class disabled
+										$item.closest('li').removeClass('disabled').attr('title', tmpArr.length);
+									} else {
+										$item.removeClass('disabled').attr('title', tmpArr.length);
+									}
 								}
-								catTotal += tmpArr.length;
+								itemTotal += tmpArr.length;
+								catTotal++;
+
 							} else {
+								
 								//Disable category no items for that option.
 								if(prop === 'option' || prop === 'input') {
 									$item.attr('disabled', true);
 								} else {
-									$item.addClass('disabled').removeAttr('title');
+									if(create === 'fakeSelect') {
+										//Remove class disabled
+										$item.closest('li').addClass('disabled').removeAttr('title');
+									} else {
+										$item.addClass('disabled').removeAttr('title');
+									}
+								}
+
+							}
+
+						}
+
+						if(depth !== null) {
+
+							//Need to join arrays together before being intersected.
+							for(var subCat in totalItems[catId]) {
+								var initArr = [],
+ 									categoriesId = subCat.split('/');
+
+								//If there is no head desc/Id skip
+	                            if(categoriesId[depth] == undefined) continue;
+								id = categoriesId[depth];
+								initArr = (compiledObj[id] === undefined) ? [] : compiledObj[id];
+								compiledObj[id] = Array.prototype.concat.apply(initArr, totalItems[catId][subCat]);
+							}
+
+							updateFilterObj = compiledObj;
+
+						}
+
+						for(var subCat in updateFilterObj) {
+
+							var id = subCat.replace(/\W/g, '-');
+
+							//Do these sub categories have any of our items?
+							$item = $this.find('#' + paramTypes[i][0] + '-' + id);
+							if($item.length === 0) continue;
+							prop = $item.prop('tagName').toLowerCase();
+
+							updateFilters(updateFilterObj[subCat]);
+
+						}
+
+						
+						if(maxLength !== null) {
+							if(catTotal > maxLength) {
+								if($this.set.hideAncestor !== false) {
+									$filter.closest('.' + $this.set.hideAncestor).addClass('too-many-options');
+								} else {
+									$filter.addClass('too-many-options');
+								}
+							} else {
+								if($this.set.hideAncestor !== false) {
+									$filter.closest('.' + $this.set.hideAncestor).removeClass('too-many-options');
+								} else {
+									$filter.removeClass('too-many-options');
 								}
 							}
 						}
 
 						//If the whole category is empty hide category.
 						if(catTotal > 0) {
-							$this.find('#' + paramTypes[i]).removeClass('disabled').attr('title', catTotal);
+							$filter.removeClass('disabled').attr('title', itemTotal);
 						} else {
-							$this.find('#' + paramTypes[i]).addClass('disabled').removeAttr('title');
+							$filter.addClass('disabled').removeAttr('title');
 						}
 					}
 				}
@@ -568,32 +820,48 @@
 				$this.set.currentItems = priv.keysToItems.apply($this, [renderItems]);
 			}
 
-			if($this.set.filteredBy.sort !== undefined && $this.set.currentItems.length > 0) {
+            if($this.set.filteredBy.sort !== undefined && $this.set.currentItems.length > 0) {
 				priv.sortItems.apply($this);
 			} else {
-				priv.renderItems.apply($this);
+	            if($this.set.preSort !== false) {
+	            	priv.sortItems.apply($this, [$this.set.preSort[0], $this.set.preSort[1]]);
+	            } else {
+					priv.renderItems.apply($this);
+	            }
 			}
 		},
-		sortItems: function() {
+		sortItems: function(preSortBy, preSortDir) {
 			var $this = this,
 				items = $this.set.currentItems,
 				itemsLen = items.length,
-				sortBy = $this.set.filteredBy.sort.value[0],
+				sortBy = preSortBy || $this.set.filteredBy.sort.value[0],
+				sortId = (preSortBy && preSortDir) ? preSortBy + '-' + preSortDir : $this.set.filteredBy.sort.value.join('-');
 				i = 0,
 				sortArr = [];
-
 
 			for (i = 0; i < itemsLen; i++) {
 				//Create array
 				sortArr[i] = {obj: items[i]};
 				if(sortBy === 'price') {
-					sortArr[i][sortBy] = parseInt(items[i].price.replace('&#160;', ''));
+					if(parseFloat(items[i].price.priceAsNumber, 10) != items[i].price.priceAsNumber)
+						foo = items[i].price;
+					// console.log(parseInt(items[i].price.priceAsNumber, 10), items[i].price);
+					sortArr[i][sortBy] = parseFloat(items[i].price.priceAsNumber, 10);
 				} else if(sortBy === 'news') {
 					sortArr[i][sortBy] = items[i].newsmarker !== undefined ? 0 : 10;
 				} else {
 					//Sort alphabetically
 					sortArr[i][sortBy] = items[i][sortBy];
 				}
+			}
+
+			$item = $this.find('#sort-' + sortId);
+			console.log('var $item', $item);
+			if($this.find('#sort').data('create') === 'fakeSelect') {
+				//Remove class disabled
+				$item.closest('li').addClass($this.set.filterSelectedClass);
+			} else {
+				$item.addClass($this.set.filterSelectedClass);
 			}
 
 			if(typeof sortArr[0][sortBy] === 'number') {
@@ -608,7 +876,7 @@
 				});
 			}
 
-			if($this.set.filteredBy.sort.value[1] === 'dsc') sortArr.reverse();
+			if((preSortDir || $this.set.filteredBy.sort.value[1]) === 'dsc') sortArr.reverse();
 
 			//Clean array before reloading objects
 			$this.set.currentItems = [];
@@ -628,27 +896,61 @@
 				start = 0,
 				html = '';
 
-			if($this.set.limit !== 'none') {
+			if($this.set.initialLoad) {
+
+				if($this.set.appendItems) {
+					
+					//Take away page 1 and add the rest of the pages as long as there are enough products.
+					start = 0;
+					range = $this.set.limit * $this.set.filteredBy.page;
+					len = (range > len) ? len : range;
+
+					//Force reload of html
+					$this.set.pages = 1;
+
+					if(len !== range) {
+						//If len equals range then there we've met the max and should hide paging.
+						$this.find('.paging').addClass('disabled');
+					}
+
+				} else {
+					//Set up for paging environment. Not load.
+				}
+
+				$this.set.initialLoad = false;
+
+			} else if($this.set.limit !== 'none') {
 
 				if(len > $this.set.limit) {
+					//Set how many pages there are after filtering.
 					$this.set.pages = Math.ceil(len / $this.set.limit);
+
+					//Not sure this is right.
 					$this.find('.paging').removeClass('disabled');
+					
+					//This gives us max products in pages...
 					range = $this.set.limit * $this.set.filteredBy.page;
+					//Where to start from.
 					start = ($this.set.filteredBy.page - 1) * $this.set.limit;
-					len = (range > items.length) ? start + (items.length % $this.set.limit) : range;
+
+					len = (range > len) ? len : range;
+
+					//Show previous buttons if page count is greater than 1
 					if($this.set.filteredBy.page > 1) {
-						$this.find('.prev').closest('.paging').removeClass('disabled');
+						$this.find($this.set.filterOptions.paging.prevBtnClass).closest('.paging').removeClass('disabled');
 					} else {
-						$this.find('.prev').closest('.paging').addClass('disabled');
+						$this.find($this.set.filterOptions.paging.prevBtnClass).closest('.paging').addClass('disabled');
 					}
+
 					if(len !== range) {
 						//assume we are on the last page.
 						$this.find('.paging').addClass('disabled');
 					}
 				} else {
+					//Pages not needed too few items compared to limit.
 					$this.set.pages = 1;
 					$this.find('.paging').addClass('disabled');
-					$this.find('.prev').closest('.paging').addClass('disabled');
+					$this.find($this.set.filterOptions.paging.prevBtnClass).closest('.paging').addClass('disabled');
 				}
 
 			} else {
@@ -660,6 +962,7 @@
 			for (var i = start; i < len; i++) {
 				//Chance to add more items to the object. Must also be in the template.
 				if($this.set.eachItemAttrs) items[i] = $this.set.eachItemAttrs($this, items[i], i);
+				if($this.set.onItemIndex === i) html += $this.set.onItem(len);
 				html += priv.renderItemTemplate.apply($this, [items[i]]);
 			}
 
@@ -676,48 +979,36 @@
 			//Parse template add data.
 			//use text between {} as keys.
 			var $this = this,
-				template = $this.filter.templates.item,
+				template = $this.filter.settings.template.item,
+				priceTemplate = '',
 				images = [],
 				numImages = 0,
 				clearImageLine = false,
 				imageStr = '',
-				variations = obj.variations !== undefined ? obj.variations : false,
 				varArr = [],
 				len = images.length;
-			
-			if($this.set.debug === true && typeof images !== 'object') { console.warn('You should be using the latest version of the JSFilter class. Incl in v2'); }
 
-			if(variations !== false) {
-				//Create an array of the product variations.
-				for (var i = 0; i < variations.length; i++) {
-					varArr[i] = variations[i].id;
-				}
-
-				//Use only main product array / first in varArr 
-				if(obj.image[varArr[0]]) {
-					images = obj.image[varArr[0]];
-				} else if(obj.image[0]) {
-					images = obj.image[0];
-				} else {
-					images = obj.image[-1];
-				}
-
+			if(typeof obj.price === 'object' && obj.price.soldout) {
+				priceTemplate = $this.filter.settings.template.price.soldout;
 			} else {
-				images = obj.image[0];
-				
-				if(typeof obj.image == 'object' && images === undefined) {
-					for(var imageArr in obj.image) {
-						images = obj.image[imageArr];
-					}
+				if(typeof obj.price === 'object' && obj.price.showAsOnSale) {
+					priceTemplate = $this.filter.settings.template.price.discounted;
+				} else {
+					priceTemplate = $this.filter.settings.template.price.default;
 				}
 			}
 
+			if(typeof obj.image === 'object') {
+				images = obj.image;
+			} else {
+				images[0] = obj.image;
+			}
+
 			obj.hash = $this.set.currentHash.indexOf('#') === -1 ? '#' + $this.set.currentHash : $this.set.currentHash;
-
-			//Split URI's if needed
-			obj.category_uri = (obj.category_uri === null) ? '' : (obj.category_uri.indexOf(':') !== -1) ? obj.category_uri.slice(0,obj.category_uri.indexOf(':')) : obj.category_uri;
-			obj.root_uri = (obj.root_uri === null) ? '' : (obj.root_uri.indexOf(':') !== -1) ? obj.root_uri.slice(0,obj.root_uri.indexOf(':')) : obj.root_uri;
-
+			obj.root = encodeURIComponent(window.location.origin);
+			obj.category = $this.set.category;
+			
+			//Replace with attrs
 			if(template.indexOf('{rep_') !== -1) {
 				template = template.replace(/<[^<]*(\{rep_(.+?)\})[^>]*>/g, function(value, sel, text) {
 					var str = '',
@@ -731,19 +1022,33 @@
 				});
 			}
 
+            if(typeof obj.priceHTML === 'undefined') {
+                obj.priceHTML = priceTemplate.replace(/\{(.+?)\}/g, function(value, text) {
+                    return obj.price[text];
+                });
+            }
+
 			template = template.replace(/\{(.+?)\}/g, function(value, text) {
 				//Replace text with property only if property exists.
 				//Special logic for not enough images to fill html.
+                $func = false;
+                if(text.indexOf('|') !== -1) {
+                    text = text.split('|');
+                    switch(text[1]) {
+                        case 'title': $func = capitalize; break;
+                    }
+                    text = text[0];
+                }
 				var str = '';
 				if(text.substring(0,6) === 'image_') {
 					var pos = parseInt(text.substring(6)) - 1;
 					str = images[pos];
-					if(str === undefined) {
+					if(str === undefined || str === null) {
 						clearImageLine = true;
 						return '{#}';
 					}
 				} else {
-					str = obj[text] !== undefined ? obj[text] : '';
+					str = obj[text] !== undefined ? ($func?$func(obj[text]):obj[text]) : '';
 				}
 				return str;
 			});
@@ -758,8 +1063,8 @@
 				item = '';
 
 			for (var i = 0; i < arr.length; i++) {
-				item = $this.filter.items_keys[arr[i]];
-				newArr[i] = $this.filter.items[item];
+				item = $this.filter.productIds[arr[i]];
+				newArr[i] = $this.filter.products[item];
 			}
 
 			return newArr;
@@ -800,9 +1105,9 @@
 				tmpArr = [],
 				type = '',
 				firstFilter = true,
-				value = null;
-				
-			if(str.length > 1) {
+				value = [];
+
+			if(str.length > 1 && str.indexOf('/') !== 1) {
 				for (var i = 0; i < filters.length; i++) {
 					tmpArr = filters[i].split('=');
 					if(tmpArr[0] === 'page') {
@@ -831,7 +1136,7 @@
 					}
 				}
 			}
-			
+
 			//Set page number if not set.
 			if(obj.page === undefined) obj.page = 1;
 
@@ -864,7 +1169,8 @@
 					strHash += filter + '~' + obj[filter].type + '=' + value + '&';
 				}
 			}
-			return strHash.substring(0, strHash.length - 1);
+            strHash = strHash.substring(0, strHash.length - 1);
+			return strHash.length ? strHash : '';
 		},
 		urlify: function(str) {
 			//Returns str
@@ -890,7 +1196,7 @@
 					console.log('Options -> ', $this.set);
 
 					if($this.set.url === undefined) {
-						console.warn('No url has been defined i.e. loadproducts/category?search=');
+						console.warn('No url has been defined i.e. loadproducts');
 					}
 				}
 
@@ -903,22 +1209,31 @@
 
 	var defaultOpts = {
 		limit: 20,
+		preSort: false,
 		splitSizes: false,
 		appendItems: false,
 		multipleImgs: false,
 		filterOptions: {},
 		updateWHash: false,
+		hideAncestor: false,
+		repeatStartFakeSelect: false,
+		undefinedCat: 'Unsorted',
+		undefinedCatId: 'unsorted',
 		itemContId: 'item-cont',
 		filterSelectedClass: 'selected',
 		groupClass: 'filter-group'
 	};
 
 	var privateOpts = {
-		filteredBy: {},
+		filteredBy: {
+			page: 1
+		},
 		currentHash: '',
 		latestCat: '',
 		currentItems: [],
 		oldLimit: null,
+		relevantFilters: null,
+		initialLoad: false,
 		pages: 1
 	};
 

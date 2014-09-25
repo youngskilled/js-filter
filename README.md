@@ -19,7 +19,7 @@ Example
 
 This is the basic page structure required for the filter to work.
 	
-	<div id="filter-container" data-url="">
+	<div id="filter-container" data-url="" data-category="">
 	     <!-- All things related to filter are collected here. -->
 	     <div class="filter-group" data-type="">
 	         <div id="color" class="filter-group" data-type="<!-- See "Data Types" below -->" data-create="<!-- See "Data Create" below -->"></div>
@@ -36,7 +36,7 @@ This is the basic page structure required for the filter to work.
 
 The following structure you can use in combination with Emmet for tab completion.
 
-	div#filter-container[data-url=""]>div.filter-group[data-type=""]+div.paging>a.next+a.prev^div.item-container
+	div#filter-container[data-url="" data-category=""]>div.filter-group[data-type=""]+div.paging>a.next+a.prev^div.item-container
 
 ### Properties ###
 
@@ -98,6 +98,25 @@ Extend filter HTML with predefined variables. See Filter Variables below.
 Using several images on product listing for roll overs etc.
 
 	$(selector).ysFilter({multipleImgs: false})
+
+#### onItemIndex ####
+
+*Default* `undefined`  
+*Expects* `integer`
+
+Used in conjunction with onItem. After a certain amount of products built do this.
+
+#### onItem ####
+
+*Expects* `function(length)`
+
+Can add an extra string on a specific item index to be used in conjunction with onItemIndex. Length of items to be rendered also displayed. This is often used in handling banners in category views.
+
+	$(selector).ysFilter({eachItemAttrs: function(length) {
+		//number of items in array
+		//Add string here
+		return returnExtraString;
+	}})
 
 #### eachItemAttrs ####
 
@@ -273,12 +292,32 @@ HTML using Emmet:
 	input[type=checkbox]+label
 
 
-#### Classes ####
+### Classes ###
 
 Numerous classes can be reassigned. Check the `defaultOpts {}` as to which classes are able to be manipulated.
 
 
+### Initial Data ###
+
+
+#### url ####
+
+Where to get the JSON object from.
+
+	/loadfilter
+
+
+#### category ####
+
+Category URI. Everything after the root and no slash is needed in the beginning.
+
+	shop/all
+
+
 ### Changelog ###
+
+**Version 0.3.0** 
+*WARNING BREAKING CHANGES* Filter is now working against a new JSON object returned from Symfony instead of directly against Silk. Some added features are the filter works against all products category agnostic this means also that the category needs to be sent in as a parameter. Pre-sort has also been added as a feature along with some more classes to easily hide/show products while filter loads.
 
 **Version 0.2.3** 
 Paging problems. Hash didn't have parseInt. Special use case for images where the image was connected to a variant despite there being no variants.
