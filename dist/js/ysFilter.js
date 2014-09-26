@@ -1,4 +1,3 @@
-var hej;
 ;(function($, window) {
 
 	//Private Methods
@@ -7,11 +6,11 @@ var hej;
 			var $this = this;
 			
 			//Allow css to handle display while loading.
-			$this.addClass('ysFilter-loading');
+			$this.addClass('ysFilter-loading ysFilter-init');
 			$this.set.currentHash = window.location.hash;
 
-            if($this.set.currentHash == '#') {
-            	$this.set.currentHash = '';
+			if($this.set.currentHash == '#') {
+				$this.set.currentHash = '';
 			} else {
 				$this.addClass('ysFilter-filtered');
 				//Adds the hash to relevant URLs that are not products.
@@ -31,7 +30,7 @@ var hej;
 				dataType: 'JSON',
 				success: function(data) {
 					$this.filter = data;
-					if($this.set.debug === true) console.log('var $this.filter', $.extend({}, $this.filter) );
+					if($this.set.debug === true) console.log('var $this.filter', $.extend({}, $this.filter));
 
 					//We want to run a pre-filter here to remove excess filter options if a catgeory has been set.
 					priv.preFilter.apply($this);
@@ -42,11 +41,11 @@ var hej;
 
 					//Set some global variables.
 					$this.set.limit = $this.filter.settings.limit;
-                    $this.set.pages = Math.ceil(Object.keys($this.filter.productIds).length / $this.set.limit);
+					$this.set.pages = Math.ceil(Object.keys($this.filter.productIds).length / $this.set.limit);
 
 					//If previously filtered. Filter and render relevant products.
 					if($this.set.currentHash !== '') {
-                        $this.set.filteredBy = priv.dehashify.apply($this, [window.location.hash]);
+						$this.set.filteredBy = priv.dehashify.apply($this, [window.location.hash]);
 						if($this.set.filteredBy.page > 1) {
 							$this.find($this.set.filterOptions.paging.prevBtnClass).closest('.paging').show();
 							$this.set.initialLoad = true;
@@ -63,7 +62,7 @@ var hej;
 							//Replace even on first load if debug: true
 							if($this.set.debug === true) 
 								priv.gatherItems.apply($this);
-	                    }
+						}
 					}
 				}
 			});
@@ -154,7 +153,7 @@ var hej;
 					initDesc = $this.filter.settings.sort.init !== undefined ? $this.filter.settings.sort.init : '';
 
 				create = $sort.data('create');
-				tplAdditions = $this.set.filterOptions['sort'] || {};
+				tplAdditions = $this.set.filterOptions.sort || {};
 
 				for(var sort in $this.filter.settings.sort) {
 					if(sort === 'init') continue;
@@ -201,13 +200,13 @@ var hej;
 					desc = underCat;
 
 					if($this.filter.filterDescriptions[cat] !== undefined && $this.filter.filterDescriptions[cat][underCat] !== undefined) {
-                        if($this.filter.filterDescriptions[cat][underCat].color_img !== undefined) {
+						if($this.filter.filterDescriptions[cat][underCat].color_img !== undefined) {
 							desc = [desc, $this.filter.filterDescriptions[cat][underCat].color_img];
 						} else if($this.filter.filterDescriptions[cat][underCat].color_hex !== undefined) {
 							desc = [desc, $this.filter.filterDescriptions[cat][underCat].color_hex];
 						} else {
-                            desc = $this.filter.filterDescriptions[cat][underCat];
-                        }
+							desc = $this.filter.filterDescriptions[cat][underCat];
+						}
 					}
 
 					if(desc.indexOf('::') !== -1) {
@@ -221,7 +220,7 @@ var hej;
 						if($filter.data('depth') !== undefined) {
 							depth = $filter.data('depth') - 1;
 							//If there is no head desc/Id skip
-                            if(categoriesDesc[depth] == undefined) continue;
+							if(categoriesDesc[depth] === undefined) continue;
 							filterId = categoriesId[depth];
 							desc = categoriesDesc[depth];
 							if(uniqueCategories[filterId] === undefined) {
@@ -245,7 +244,7 @@ var hej;
 						}
 					} else if($this.set.splitSizes !== false && cat === 'size') {
 						//Handling of split size groups. -> needs to be added to filterDescriptions.
-                        whichGroup = 'size';
+						whichGroup = 'size';
 						sizeTables = underCat.split('_');
 						if(currGroup !== sizeTables[0]) {
 							if(currGroup !== null) {
@@ -282,7 +281,7 @@ var hej;
 					html = '<div class="filter-value fake-select"><span class="title" data-orig-text="' + catDesc + '">' + catDesc + '</span><ul class="ul-clean fake-select-list">' + subHtml + html + '</ul></div>';
 				}
 				if(create === 'select' || create === 'multiSelect') html = '<select name="' + cat + '" class="filter-value"' + (create === 'multiSelect' ? ' multiple="multiple"' : '') + '><option value="0">' + catDesc + '</option>' + html + '</select>';
-                $filter.append(html);
+				$filter.append(html);
 			}
 
 			//Filter is loaded and ready to use.
@@ -378,11 +377,11 @@ var hej;
 				
 				if(type !== 's' && type !== 's1') {
 					$this.set.latestCat = cat;
-                } else { 
-                	if(!$(this).hasClass('selected')) {
+				} else { 
+					if(!$(this).hasClass('selected')) {
 						$(this).closest('.filter-group').find('.filter-value').removeClass($this.set.filterSelectedClass);
 					}
-                }
+				}
 
 				if(!$(this).hasClass('disabled') && !$(this).parent().hasClass('disabled')) {
 					$(this).toggleClass($this.set.filterSelectedClass);
@@ -487,9 +486,9 @@ var hej;
 				//Select One
 				currVal = $this.set.filteredBy[cat] !== undefined ? (typeof $this.set.filteredBy[cat].value === 'object') ? $this.set.filteredBy[cat].value.join(',') : $this.set.filteredBy[cat].value : '';
 				if(currVal === val || val === 0 || val === '0' || val === 'remove') {
-                    delete $this.set.filteredBy[cat];
+					delete $this.set.filteredBy[cat];
 					priv.reSelectLatestFilter.apply($this);
-                 } else {
+				} else {
 					$this.set.filteredBy[cat] = {type: type, value: val};
 				}
 			} else if(type === 'sand' || type === 'sor') {
@@ -613,12 +612,14 @@ var hej;
 				newItems = [],
 				renderItems = [];
 
+			var catTotal, catId, itemTotal, $filter, $item, create, maxLength, prop, compiledObj, updateFilterObj, depth, subCat;
+
 			var matchUri = function(filter, value) {
 				var urlArray = [],
 					j = 0,
 					catDepth = parseInt(filter.slice(-1), 10) - 1,
 					filterId = filter.replace(catRegexp, ''),
-					uriValue = (value === $this.set.undefinedCatId) ? undefined: value;
+					uriValue = (value === $this.set.undefinedCatId) ? undefined : value;
 
 				for(var urls in totalItems[filterId]) {
 					if(urls.indexOf($this.set.category) !== 0) continue;
@@ -630,7 +631,7 @@ var hej;
 					}							
 				}
 				return Array.prototype.concat.apply([], urlArray);
-			}
+			};
 
 			//Could build on previous items to be even quicker? Instead of parsing the whole object...
 			for(var filter in filteredBy) {
@@ -682,8 +683,8 @@ var hej;
 				$this.find('.filter-group option').removeAttr('disabled').filter(':selected').removeAttr('selected');
 
 				for (i = 0; i < paramTypes.length; i++) {
-					var $filter = $this.find('#' + paramTypes[i][0]),
-						maxLength = $filter.data('max-length') || null;
+					$filter = $this.find('#' + paramTypes[i][0]);
+					maxLength = $filter.data('max-length') || null;
 
 					if(maxLength !== null) {
 						if(Object.keys(totalItems[paramTypes[i][0]]).length > maxLength) {
@@ -704,23 +705,47 @@ var hej;
 					//If only one filter is chosen, remove disabled on that one remove latestCat
 					//Previous filter.
 					if($this.set.latestCat !== paramTypes[i][0]) {
-						var catTotal = 0,
-							catId = paramTypes[i][0].replace(/_\d$/, '');
-							itemTotal = 0,
-							$filter = $this.find('#' + paramTypes[i][0]),
-							$item = {},
-							create = $filter.data('create') || null,
-							maxLength = $filter.data('max-length') || null,
-							prop = '',
-							compiledObj = {},
-							updateFilterObj = totalItems[catId],
-							depth = ($filter.data('depth') - 1) || null;
-
+						
+						catTotal = 0;
+						catId = paramTypes[i][0].replace(/_\d$/, '');
+						itemTotal = 0;
+						$filter = $this.find('#' + paramTypes[i][0]);
+						$item = {};
+						create = $filter.data('create') || null;
+						maxLength = $filter.data('max-length') || null;
+						prop = '';
+						compiledObj = {};
+						updateFilterObj = totalItems[catId];
+						depth = ($filter.data('depth') - 1) || null;
 						tmpArr = [];
 
+						if(depth !== null) {
 
-						var updateFilters = function(intersectOn) {
-							var intersected = priv.intersect(renderItems, intersectOn);
+							//Need to join arrays together before being intersected.
+							for(subCat in totalItems[catId]) {
+								var initArr = [],
+									categoriesId = subCat.split('/');
+
+								//If there is no head desc/Id skip
+								if(categoriesId[depth] === undefined) continue;
+								id = categoriesId[depth];
+								initArr = (compiledObj[id] === undefined) ? [] : compiledObj[id];
+								compiledObj[id] = Array.prototype.concat.apply(initArr, totalItems[catId][subCat]);
+							}
+
+							updateFilterObj = compiledObj;
+
+						}
+
+						for(subCat in updateFilterObj) {
+
+							var id = subCat.replace(/\W/g, '-'),
+								intersected = priv.intersect(renderItems, updateFilterObj[subCat]);
+
+							//Do these sub categories have any of our items?
+							$item = $this.find('#' + paramTypes[i][0] + '-' + id);
+							if($item.length === 0) continue;
+							prop = $item.prop('tagName').toLowerCase();
 
 							if(intersected.length > 0) {
 
@@ -757,37 +782,6 @@ var hej;
 
 						}
 
-						if(depth !== null) {
-
-							//Need to join arrays together before being intersected.
-							for(var subCat in totalItems[catId]) {
-								var initArr = [],
- 									categoriesId = subCat.split('/');
-
-								//If there is no head desc/Id skip
-	                            if(categoriesId[depth] == undefined) continue;
-								id = categoriesId[depth];
-								initArr = (compiledObj[id] === undefined) ? [] : compiledObj[id];
-								compiledObj[id] = Array.prototype.concat.apply(initArr, totalItems[catId][subCat]);
-							}
-
-							updateFilterObj = compiledObj;
-
-						}
-
-						for(var subCat in updateFilterObj) {
-
-							var id = subCat.replace(/\W/g, '-');
-
-							//Do these sub categories have any of our items?
-							$item = $this.find('#' + paramTypes[i][0] + '-' + id);
-							if($item.length === 0) continue;
-							prop = $item.prop('tagName').toLowerCase();
-
-							updateFilters(updateFilterObj[subCat]);
-
-						}
-
 						
 						if(maxLength !== null) {
 							if(catTotal > maxLength) {
@@ -820,14 +814,14 @@ var hej;
 				$this.set.currentItems = priv.keysToItems.apply($this, [renderItems]);
 			}
 
-            if($this.set.filteredBy.sort !== undefined && $this.set.currentItems.length > 0) {
+			if($this.set.filteredBy.sort !== undefined && $this.set.currentItems.length > 0) {
 				priv.sortItems.apply($this);
 			} else {
-	            if($this.set.preSort !== false) {
-	            	priv.sortItems.apply($this, [$this.set.preSort[0], $this.set.preSort[1]]);
-	            } else {
+				if($this.set.preSort !== false) {
+					priv.sortItems.apply($this, [$this.set.preSort[0], $this.set.preSort[1]]);
+				} else {
 					priv.renderItems.apply($this);
-	            }
+				}
 			}
 		},
 		sortItems: function(preSortBy, preSortDir) {
@@ -835,7 +829,7 @@ var hej;
 				items = $this.set.currentItems,
 				itemsLen = items.length,
 				sortBy = preSortBy || $this.set.filteredBy.sort.value[0],
-				sortId = (preSortBy && preSortDir) ? preSortBy + '-' + preSortDir : $this.set.filteredBy.sort.value.join('-');
+				sortId = (preSortBy && preSortDir) ? preSortBy + '-' + preSortDir : $this.set.filteredBy.sort.value.join('-'),
 				i = 0,
 				sortArr = [];
 
@@ -856,7 +850,7 @@ var hej;
 			}
 
 			$item = $this.find('#sort-' + sortId);
-			console.log('var $item', $item);
+
 			if($this.find('#sort').data('create') === 'fakeSelect') {
 				//Remove class disabled
 				$item.closest('li').addClass($this.set.filterSelectedClass);
@@ -1008,47 +1002,44 @@ var hej;
 			obj.root = encodeURIComponent(window.location.origin);
 			obj.category = $this.set.category;
 			
-			//Replace with attrs
-			if(template.indexOf('{rep_') !== -1) {
-				template = template.replace(/<[^<]*(\{rep_(.+?)\})[^>]*>/g, function(value, sel, text) {
-					var str = '',
-						end = '</' + value.match(/<([a-z]+)/)[1] + '>';
-					for (var i = 0; i < varArr.length; i++) {
-						if(obj[text] !== undefined && obj[text][varArr[i]] !== undefined) {
-							str += value.replace(sel, obj[text][varArr[i]]) + end;
-						}
-					}
-					return str;
+			if(typeof obj.priceHTML === 'undefined') {
+				obj.priceHTML = priceTemplate.replace(/\{(.+?)\}/g, function(value, text) {
+					return obj.price[text];
 				});
 			}
-
-            if(typeof obj.priceHTML === 'undefined') {
-                obj.priceHTML = priceTemplate.replace(/\{(.+?)\}/g, function(value, text) {
-                    return obj.price[text];
-                });
-            }
 
 			template = template.replace(/\{(.+?)\}/g, function(value, text) {
 				//Replace text with property only if property exists.
 				//Special logic for not enough images to fill html.
-                $func = false;
-                if(text.indexOf('|') !== -1) {
-                    text = text.split('|');
-                    switch(text[1]) {
-                        case 'title': $func = capitalize; break;
-                    }
-                    text = text[0];
-                }
-				var str = '';
+				var str = '',
+					pos, 
+					attribute;
+
 				if(text.substring(0,6) === 'image_') {
-					var pos = parseInt(text.substring(6)) - 1;
+					pos = parseInt(text.substring(6)) - 1;
 					str = images[pos];
 					if(str === undefined || str === null) {
 						clearImageLine = true;
 						return '{#}';
 					}
+				} else if(text.substring(0,5) === 'attr_') {
+					attribute = text.substring(5);
+					if(obj[attribute] !== null && typeof obj[attribute] === 'object') {
+						for(var type in obj[attribute]) {
+							if(obj[attribute][type].image !== undefined && obj[attribute][type].image.url !== undefined && typeof obj[attribute][type].image === 'object') {
+								str += '<img class="filter-list-attribute" src="' + obj[attribute][type].image.url + '">';
+							}
+						}
+					}
+				} else if(text.indexOf('|') !== -1) {
+					text = text.split('|');
+					switch(text[1]) {
+						case 'title': 
+							str = obj[text[0]] !== undefined ? priv.titleCase(obj[text[0]]) : '';
+							break;
+					}
 				} else {
-					str = obj[text] !== undefined ? ($func?$func(obj[text]):obj[text]) : '';
+					str = obj[text] !== undefined ? obj[text] : '';
 				}
 				return str;
 			});
@@ -1169,8 +1160,11 @@ var hej;
 					strHash += filter + '~' + obj[filter].type + '=' + value + '&';
 				}
 			}
-            strHash = strHash.substring(0, strHash.length - 1);
+			strHash = strHash.substring(0, strHash.length - 1);
 			return strHash.length ? strHash : '';
+		},
+		titleCase: function(s) {
+			return s.toLowerCase().replace(/\b./g, function(a) { return a.toUpperCase(); });
 		},
 		urlify: function(str) {
 			//Returns str

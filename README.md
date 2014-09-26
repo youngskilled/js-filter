@@ -316,6 +316,9 @@ Category URI. Everything after the root and no slash is needed in the beginning.
 
 ### Changelog ###
 
+**Version 0.3.1** 
+Added a new rendering attribute. {attr|'object key'} i.e. {attr|badges} added titleCase function for doing titles using the |title. Tidied up the code a bit also, formatting and jsHint.
+
 **Version 0.3.0** 
 *WARNING BREAKING CHANGES* Filter is now working against a new JSON object returned from Symfony instead of directly against Silk. Some added features are the filter works against all products category agnostic this means also that the category needs to be sent in as a parameter. Pre-sort has also been added as a feature along with some more classes to easily hide/show products while filter loads.
 
