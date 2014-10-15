@@ -2,6 +2,13 @@
 
 A jQuery plugin that asynchronously loads in a JSON of all the product data in the current category. The plugin is able to be manipulated with a range of callbacks and properties that allow you to change the default properties.
 
+## Background ##
+
+Beneath the whole filter is a very basic html product list with the only functionality being paging. Products are ideally only shown once and URL's are kept to a minimum. This follows our philosophy at Young/Skilled that a website should be perfectly accessible with javascript even turned off. 
+This means when the page is indexed the default HTML page is the only page that is indexed because the javascript adds all the functionality in a separate layer. 
+Instead of having hundreds of similar URL's for web crawlers to search there is only the one. The page's hash is updated every time a filter selection is made which is not seen by any search engine as being a new page. This is also semantically correct in that we are effectively just showing the same content, similar to how an anchor works.
+This plugin uses a JSON string that has all the information for all the products that are displayed. On every filtering the results are shown nearly instantly as there is no requests being sent or received making the filter more responsive.
+
 ### Usage ###
 
 
