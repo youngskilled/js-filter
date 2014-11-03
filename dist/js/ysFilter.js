@@ -842,7 +842,7 @@
 					// console.log(parseInt(items[i].price.priceAsNumber, 10), items[i].price);
 					sortArr[i][sortBy] = parseFloat(items[i].price.priceAsNumber, 10);
 				} else if(sortBy === 'news') {
-					sortArr[i][sortBy] = items[i].newsmarker !== undefined ? 0 : 10;
+					sortArr[i][sortBy] = items[i].price.newProduct ? 0 : 10;
 				} else {
 					//Sort alphabetically
 					sortArr[i][sortBy] = items[i][sortBy];
