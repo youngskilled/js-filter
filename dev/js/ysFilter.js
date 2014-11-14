@@ -8,7 +8,7 @@
 			$this.set.filteredBy = priv.dehashify.apply($this, [window.location.hash]);
 			if($this.set.debug === true) console.log('var ', $this.set.filteredBy);
 			$this.set.currentHash = window.location.hash;
-			$this.addClass('ysFilter-loading');
+			$this.addClass('ysFilter-loading ysFilter-init');
 			if($this.set.currentHash !== '') {
 				$this.addClass('ysFilter-filtered');
 				if($this.set.updateWHash !== false) {
@@ -165,7 +165,6 @@
 			if($this.set.afterFilterRendered !== undefined) {
 				$this.set.afterFilterRendered();
 			}
-
 		},
 		buildFilterTemplate: function(create, id, val, desc, obj) {
 			//Loop through filter alterations.
@@ -333,9 +332,9 @@
 			var $this = this;
 
 			//Previous latestCat
-			for(var firstCat in $this.set.filteredBy) {
+			for(var filter in $this.set.filteredBy) {
 				if(filter === 'page' || filter === 'sort') continue;
-				$this.set.latestCat = firstCat;
+				$this.set.latestCat = filter;
 				break;
 			}
 
@@ -587,7 +586,7 @@
 				//Create array
 				sortArr[i] = {obj: items[i]};
 				if(sortBy === 'price') {
-					sortArr[i][sortBy] = parseInt(items[i].price.replace('&#160;', ''));
+					sortArr[i][sortBy] = parseInt(items[i].price.replace(/^\D+|&#160;|\D+$/g, ''));
 				} else if(sortBy === 'news') {
 					sortArr[i][sortBy] = items[i].newsmarker !== undefined ? 0 : 10;
 				} else {
@@ -657,6 +656,8 @@
 
 			$this.find('.page-total').text($this.set.pages);
 
+			if($this.set.filteredItems) $this.set.filteredItems(items);
+
 			for (var i = start; i < len; i++) {
 				//Chance to add more items to the object. Must also be in the template.
 				if($this.set.eachItemAttrs) items[i] = $this.set.eachItemAttrs($this, items[i], i);
@@ -683,6 +684,7 @@
 				imageStr = '',
 				variations = obj.variations !== undefined ? obj.variations : false,
 				varArr = [],
+				root = '',
 				len = images.length;
 			
 			if($this.set.debug === true && typeof images !== 'object') { console.warn('You should be using the latest version of the JSFilter class. Incl in v2'); }
@@ -716,8 +718,8 @@
 
 			//Split URI's if needed
 			obj.category_uri = (obj.category_uri === null) ? '' : (obj.category_uri.indexOf(':') !== -1) ? obj.category_uri.slice(0,obj.category_uri.indexOf(':')) : obj.category_uri;
-			obj.root_uri = (obj.root_uri === null) ? '' : (obj.root_uri.indexOf(':') !== -1) ? obj.root_uri.slice(0,obj.root_uri.indexOf(':')) : obj.root_uri;
-
+			root = (obj.root_uri === null || obj.root_uri === '') ? '' : (obj.root_uri.indexOf(':') !== -1) ? ROOT + obj.root_uri.slice(0,obj.root_uri.indexOf(':')) : ROOT + obj.root_uri;
+			
 			if(template.indexOf('{rep_') !== -1) {
 				template = template.replace(/<[^<]*(\{rep_(.+?)\})[^>]*>/g, function(value, sel, text) {
 					var str = '',
@@ -735,7 +737,9 @@
 				//Replace text with property only if property exists.
 				//Special logic for not enough images to fill html.
 				var str = '';
-				if(text.substring(0,6) === 'image_') {
+				if(text === 'root_uri') {
+					str = root;
+				} else if(text.substring(0,6) === 'image_') {
 					var pos = parseInt(text.substring(6)) - 1;
 					str = images[pos];
 					if(str === undefined) {

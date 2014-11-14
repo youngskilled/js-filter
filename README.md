@@ -280,6 +280,9 @@ Numerous classes can be reassigned. Check the `defaultOpts {}` as to which class
 
 ### Changelog ###
 
+**Version 0.2.4** 
+Fixed problems with urls not assigning root correctly. Fixed sort of currencies that are prefixed with something other than a number. Fixed fallback for filters when sort was first selected. Also added `ysFilter-init` as a class on the filter.
+
 **Version 0.2.3** 
 Paging problems. Hash didn't have parseInt. Special use case for images where the image was connected to a variant despite there being no variants.
 
