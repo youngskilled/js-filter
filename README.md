@@ -332,6 +332,9 @@ Added a new rendering attribute. {attr|'object key'} i.e. {attr|badges} added ti
 **Version 0.3.0** 
 *WARNING BREAKING CHANGES* Filter is now working against a new JSON object returned from Symfony instead of directly against Silk. Some added features are the filter works against all products category agnostic this means also that the category needs to be sent in as a parameter. Pre-sort has also been added as a feature along with some more classes to easily hide/show products while filter loads.
 
+**Version 0.2.4 - Branch beforeAPI** 
+Fixed problems with urls not assigning root correctly. Fixed sort of currencies that are prefixed with something other than a number. Fixed fallback for filters when sort was first selected. Also added ysFilter-init as a class on the filter.
+
 **Version 0.2.3** 
 Paging problems. Hash didn't have parseInt. Special use case for images where the image was connected to a variant despite there being no variants.
 
