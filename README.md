@@ -323,6 +323,9 @@ Category URI. Everything after the root and no slash is needed in the beginning.
 
 ### Changelog ###
 
+**Version 0.3.3** 
+Fixed titlecase which split on foreign characters for uppercasing. 
+
 **Version 0.3.2** 
 Fixed sort by news.
 

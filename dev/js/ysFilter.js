@@ -1164,7 +1164,7 @@
 			return strHash.length ? strHash : '';
 		},
 		titleCase: function(s) {
-			return s.toLowerCase().replace(/\b./g, function(a) { return a.toUpperCase(); });
+			return s.toLowerCase().replace(/^\S|\s\S/g, function(a) { return a.toUpperCase(); });
 		},
 		urlify: function(str) {
 			//Returns str
