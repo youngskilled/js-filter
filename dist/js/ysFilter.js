@@ -1000,6 +1000,7 @@
 
 			obj.hash = $this.set.currentHash.indexOf('#') === -1 ? '#' + $this.set.currentHash : $this.set.currentHash;
 			obj.root = encodeURIComponent(window.location.origin);
+			obj.locale = priv.getLocale();
 			obj.category = $this.set.category;
 			
 			if(typeof obj.priceHTML === 'undefined') {
@@ -1165,6 +1166,14 @@
 		},
 		titleCase: function(s) {
 			return s.toLowerCase().replace(/^\S|\s\S/g, function(a) { return a.toUpperCase(); });
+		},
+		getLocale: function() {
+			var localeText = window.location.pathname.split('/')[1];
+			if(/\w/.test(localeText)) {
+				return '/' + localeText;
+			} else {
+				return '';
+			}
 		},
 		urlify: function(str) {
 			//Returns str
