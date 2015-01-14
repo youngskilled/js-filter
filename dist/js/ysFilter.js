@@ -982,6 +982,7 @@
 				varArr = [],
 				len = images.length;
 
+			//Use price template (obj.priceHTML)
 			if(typeof obj.price === 'object' && obj.price.soldout) {
 				priceTemplate = $this.filter.settings.template.price.soldout;
 			} else {
@@ -990,6 +991,15 @@
 				} else {
 					priceTemplate = $this.filter.settings.template.price.default;
 				}
+				//Add sale or news classes
+				obj.classProductNew = obj.price.newProduct === true ? ' ' + $this.set.classProductNew : '';
+				obj.classProductSale = obj.price.showAsOnSale === true ? ' ' + $this.set.classProductSale : '';
+			}
+
+			if(typeof obj.priceHTML === 'undefined') {
+				obj.priceHTML = priceTemplate.replace(/\{(.+?)\}/g, function(value, text) {
+					return obj.price[text];
+				});
 			}
 
 			if(typeof obj.image === 'object') {
@@ -1003,12 +1013,6 @@
 			obj.locale = priv.getLocale();
 			obj.category = $this.set.category;
 			
-			if(typeof obj.priceHTML === 'undefined') {
-				obj.priceHTML = priceTemplate.replace(/\{(.+?)\}/g, function(value, text) {
-					return obj.price[text];
-				});
-			}
-
 			template = template.replace(/\{(.+?)\}/g, function(value, text) {
 				//Replace text with property only if property exists.
 				//Special logic for not enough images to fill html.
@@ -1224,7 +1228,9 @@
 		undefinedCatId: 'unsorted',
 		itemContId: 'item-cont',
 		filterSelectedClass: 'selected',
-		groupClass: 'filter-group'
+		groupClass: 'filter-group',
+		classProductNew: 'product-new',
+		classProductSale: 'product-sale'
 	};
 
 	var privateOpts = {

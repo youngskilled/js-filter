@@ -181,6 +181,18 @@ Callback to update filter styles manually after changes.
 		//Do something after filtering is finished.
 	}})
 
+#### classProductNew, classProductSale ####
+
+*Default* `product-new`, `product-sale`  
+*Expects* `string`
+
+A string to be placed in render template for using Sale or News. A space is always added in the code before the class name.
+
+	$(selector).ysFilter({
+		classProductNew: 'product-new',
+		classProductSale: 'product-sale'
+	})
+
 ### Template Options ###
 
 The template options allows you to customize the filter methods with extra classes wrap the filters with different containers etc. All following properties should be placed within `filter-id: {}`. The filter-id should pertain to the filter name i.e. `color`, `size`.
@@ -322,6 +334,9 @@ Category URI. Everything after the root and no slash is needed in the beginning.
 
 
 ### Changelog ###
+
+**Version 0.4.0** 
+Added placeholders for sales and news classes so that sales or news can be used in other parts of the item.
 
 **Version 0.3.4** 
 Added locale for sharing.
