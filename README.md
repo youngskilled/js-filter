@@ -335,6 +335,9 @@ Category URI. Everything after the root and no slash is needed in the beginning.
 
 ### Changelog ###
 
+**Version 0.5.0** 
+Default sort order now follows correct sort order in Silk. Needs to have SilkAdapterBundle > 0.4.3 requires filterDescriptions > categorySorting.
+
 **Version 0.4.0** 
 Added placeholders for sales and news classes so that sales or news can be used in other parts of the item.
 
