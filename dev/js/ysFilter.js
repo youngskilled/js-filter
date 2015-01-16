@@ -647,7 +647,6 @@
 						if(catRegexp.test(filter)) {
 							tmpArr[i] = matchUri(filter, filteredBy[filter].value[i]);
 						} else {
-							console.log('var ', filteredBy[filter].value[i], totalItems[filter][filteredBy[filter].value[i]]);
 							tmpArr[i] = totalItems[filter][filteredBy[filter].value[i]];
 						}
 					}
