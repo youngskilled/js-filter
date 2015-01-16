@@ -72,8 +72,7 @@
 			var $this = this,
 				renderItems = [],
 				tmpArr = [],
-				j = 0,
-				k = 0,
+				i = 0,
 				categories = null,
 				paramTypes = null,
 				totalItems = null,
@@ -93,20 +92,16 @@
 				if($this.set.category.indexOf('/') === 0) $this.set.category = $this.set.category.slice(1);
 
 				//Select relevant products.
-				categorySort = $this.filter.filterDescriptions.categorySorting;
 				categories = $this.filter.filter.categories;
 				paramTypes = $this.filter.settings.filter;
 				totalItems = $this.filter.filter;
 
-				//Choose all relevant categories that start with category
-				for (var i = 0; i < categorySort.length; i++) {
-					if(categorySort[i].indexOf($this.set.category) === 0) {
-						//Correct category add to tmp array
-						tmpArr[k] = categories[categorySort[i]];
-						k++;
+				for(var category in categories) {
+					if(category.indexOf($this.set.category) === 0) {
+						tmpArr[i] = categories[category];
+						i++;
 					}
 				}
-
 				//These are all the relevant items for the rest of the filtering.
 				renderItems = Array.prototype.concat.apply([], tmpArr);
 

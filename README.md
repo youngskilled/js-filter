@@ -335,6 +335,9 @@ Category URI. Everything after the root and no slash is needed in the beginning.
 
 ### Changelog ###
 
+**Version 0.5.1** 
+Pretty much reverted changes in previous commit in 0.5.0 no longer is dependent on changes in SilkAdapterBundle due to refactoring of category arrays. Default sorting is still following the correct order in Silk from here on out.
+
 **Version 0.5.0** 
 Default sort order now follows correct sort order in Silk. Needs to have SilkAdapterBundle > 0.4.3 requires filterDescriptions > categorySorting.
 
