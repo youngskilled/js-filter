@@ -983,6 +983,8 @@
 			} else {
 				if(typeof obj.price === 'object' && obj.price.showAsOnSale) {
 					priceTemplate = $this.filter.settings.template.price.discounted;
+				} else if(typeof obj.price === 'object' && obj.price.newProduct) {
+					priceTemplate = $this.filter.settings.template.price.news;
 				} else {
 					priceTemplate = $this.filter.settings.template.price.default;
 				}

@@ -335,6 +335,9 @@ Category URI. Everything after the root and no slash is needed in the beginning.
 
 ### Changelog ###
 
+**Version 0.5.3** 
+Added in a news filter template for price.
+
 **Version 0.5.2** 
 Removed some debugging data.
 
