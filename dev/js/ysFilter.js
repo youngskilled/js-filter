@@ -839,7 +839,7 @@
 				} else if(sortBy === 'news') {
 					sortArr[i][sortBy] = items[i].price.newProduct ? 0 : 10;
 				} else {
-					//Sort alphabetically
+					//Sort alphabetically | numerically
 					sortArr[i][sortBy] = items[i][sortBy];
 				}
 			}
@@ -968,8 +968,9 @@
 			//Parse template add data.
 			//use text between {} as keys.
 			var $this = this,
-				template = $this.filter.settings.template.item,
-				priceTemplate = '',
+				itemTemplate = $this.filter.settings.template.item,
+				priceTemplate = $this.filter.settings.template.price,
+				priceHtml = '',
 				images = [],
 				numImages = 0,
 				clearImageLine = false,
@@ -978,15 +979,15 @@
 				len = images.length;
 
 			//Use price template (obj.priceHTML)
-			if(typeof obj.price === 'object' && obj.price.soldout) {
-				priceTemplate = $this.filter.settings.template.price.soldout;
+			if(typeof obj.price === 'object' && obj.price.soldout && priceTemplate.soldout) {
+				priceHtml = priceTemplate.soldout;
 			} else {
-				if(typeof obj.price === 'object' && obj.price.showAsOnSale) {
-					priceTemplate = $this.filter.settings.template.price.discounted;
-				} else if(typeof obj.price === 'object' && obj.price.newProduct) {
-					priceTemplate = $this.filter.settings.template.price.news;
+				if(typeof obj.price === 'object' && obj.price.showAsOnSale && priceTemplate.discounted) {
+					priceHtml = priceTemplate.discounted;
+				} else if(typeof obj.price === 'object' && obj.price.newProduct && priceTemplate.news) {
+					priceHtml = priceTemplate.news;
 				} else {
-					priceTemplate = $this.filter.settings.template.price.default;
+					priceHtml = priceTemplate.default;
 				}
 				//Add sale or news classes
 				obj.classProductNew = obj.price.newProduct === true ? ' ' + $this.set.classProductNew : '';
@@ -994,7 +995,7 @@
 			}
 
 			if(typeof obj.priceHTML === 'undefined') {
-				obj.priceHTML = priceTemplate.replace(/\{(.+?)\}/g, function(value, text) {
+				obj.priceHTML = priceHtml.replace(/\{(.+?)\}/g, function(value, text) {
 					return obj.price[text];
 				});
 			}
@@ -1010,7 +1011,7 @@
 			obj.locale = priv.getLocale();
 			obj.category = $this.set.category;
 			
-			template = template.replace(/\{(.+?)\}/g, function(value, text) {
+			itemTemplate = itemTemplate.replace(/\{(.+?)\}/g, function(value, text) {
 				//Replace text with property only if property exists.
 				//Special logic for not enough images to fill html.
 				var str = '',
@@ -1046,9 +1047,9 @@
 				return str;
 			});
 
-			if(clearImageLine) template = template.replace(/<[^<]*\{#\}[^>]*>/g, '');
+			if(clearImageLine) itemTemplate = itemTemplate.replace(/<[^<]*\{#\}[^>]*>/g, '');
 
-			return template;
+			return itemTemplate;
 		},
 		keysToItems: function(arr) {
 			var $this = this,
