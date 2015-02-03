@@ -33,6 +33,9 @@
 					$this.set.limit = data.limit;
 					$this.set.pages = Math.ceil(data.items.length / $this.set.limit);
 
+					//Private variable to compare against initial load.
+					$this.set.currentPageLoaded = 1; 
+
 					//If previously filtered. Run filter else load all products.
 					if($this.set.currentHash !== '') {
 						priv.gatherItems.apply($this);
@@ -278,6 +281,7 @@
 				//Remove all filters
 				$this.set.filteredBy = {};
 				$this.set.filteredBy.page = 1;
+				$this.set.currentPageLoaded = 1;
 				$this.set.currentHash = '';
 				window.location.hash = $this.set.currentHash;
 				$this.find('.filter-group .' + $this.set.filterSelectedClass).removeClass($this.set.filterSelectedClass);
@@ -290,6 +294,7 @@
 				//Next Page
 				if($this.set.filteredBy.page < $this.set.pages) {
 					$this.set.filteredBy.page += 1;
+					$this.set.currentPageLoaded += 1;
 					$this.set.currentHash = priv.hashify($this.set.filteredBy);
 					if($this.set.currentHash.length > 0) window.location.hash = $this.set.currentHash;
 					$this.find('.current-page').text($this.set.filteredBy.page);
@@ -303,6 +308,7 @@
 				//Prev Page
 				if($this.set.filteredBy.page > 1) {
 					$this.set.filteredBy.page -= 1;
+					$this.set.currentPageLoaded -= 1;
 					$this.set.currentHash = priv.hashify($this.set.filteredBy);
 					if($this.set.currentHash.length > 0) window.location.hash = $this.set.currentHash;
 					$this.find('.current-page').text($this.set.filteredBy.page);
@@ -395,6 +401,7 @@
 
 			//Filter has changed reset to page 1
 			$this.set.filteredBy.page = 1;
+			$this.set.currentPageLoaded = 1;
 			
 			//Update Hash - hashify object
 			$this.set.currentHash = priv.hashify($this.set.filteredBy);
@@ -633,7 +640,8 @@
 					$this.set.pages = Math.ceil(len / $this.set.limit);
 					$this.find('.paging').removeClass('disabled');
 					range = $this.set.limit * $this.set.filteredBy.page;
-					start = ($this.set.filteredBy.page - 1) * $this.set.limit;
+					start = $this.set.currentPageLoaded === 1 ? $this.set.currentPageLoaded * $this.set.limit : ($this.set.filteredBy.page - 1) * $this.set.limit;
+					$this.set.currentPageLoaded = $this.set.filteredBy.page;
 					len = (range > items.length) ? start + (items.length % $this.set.limit) : range;
 					if($this.set.filteredBy.page > 1) {
 						$this.find('.prev').closest('.paging').removeClass('disabled');
@@ -923,6 +931,7 @@
 		latestCat: '',
 		currentItems: [],
 		oldLimit: null,
+		currentPageLoaded: 1,
 		pages: 1
 	};
 
