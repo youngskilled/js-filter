@@ -34,7 +34,10 @@
 					$this.set.pages = Math.ceil(data.items.length / $this.set.limit);
 
 					//Private variable to compare against initial load.
-					$this.set.currentPageLoaded = 1; 
+					if($this.set.currentHash === '') $this.set.onFirstLoad = 1; 
+					if($this.set.currentHash !== '' && $this.set.filteredBy.page > 1) {
+						$this.set.onFirstLoad = 0;
+					}
 
 					//If previously filtered. Run filter else load all products.
 					if($this.set.currentHash !== '') {
@@ -281,7 +284,6 @@
 				//Remove all filters
 				$this.set.filteredBy = {};
 				$this.set.filteredBy.page = 1;
-				$this.set.currentPageLoaded = 1;
 				$this.set.currentHash = '';
 				window.location.hash = $this.set.currentHash;
 				$this.find('.filter-group .' + $this.set.filterSelectedClass).removeClass($this.set.filterSelectedClass);
@@ -294,10 +296,9 @@
 				//Next Page
 				if($this.set.filteredBy.page < $this.set.pages) {
 					$this.set.filteredBy.page += 1;
-					$this.set.currentPageLoaded += 1;
 					$this.set.currentHash = priv.hashify($this.set.filteredBy);
 					if($this.set.currentHash.length > 0) window.location.hash = $this.set.currentHash;
-					$this.find('.current-page').text($this.set.filteredBy.page);
+					$this.find('.' + $this.set.pageCurrentClass).text($this.set.filteredBy.page);
 					priv.gatherItems.apply($this);
 				}
 				return false;
@@ -308,10 +309,9 @@
 				//Prev Page
 				if($this.set.filteredBy.page > 1) {
 					$this.set.filteredBy.page -= 1;
-					$this.set.currentPageLoaded -= 1;
 					$this.set.currentHash = priv.hashify($this.set.filteredBy);
 					if($this.set.currentHash.length > 0) window.location.hash = $this.set.currentHash;
-					$this.find('.current-page').text($this.set.filteredBy.page);
+					$this.find('.' + $this.set.pageCurrentClass).text($this.set.filteredBy.page);
 					priv.gatherItems.apply($this);
 				}
 			});
@@ -323,12 +323,12 @@
 				if($paging.hasClass('viewing-all')) {
 					$this.set.limit = $this.set.oldLimit;
 					$paging.removeClass('viewing-all');
-					$this.find('.current-page').text($this.set.filteredBy.page);
+					$this.find('.' + $this.set.pageCurrentClass).text($this.set.filteredBy.page);
 				} else {
 					$this.set.oldLimit = $this.set.limit;
 					$this.set.limit = 'none';
 					$paging.addClass('viewing-all');
-					$this.find('.current-page').text(1);
+					$this.find('.' + $this.set.pageCurrentClass).text(1);
 				}
 				priv.gatherItems.apply($this);
 			});
@@ -401,7 +401,7 @@
 
 			//Filter has changed reset to page 1
 			$this.set.filteredBy.page = 1;
-			$this.set.currentPageLoaded = 1;
+			$this.set.onFirstLoad = false;
 			
 			//Update Hash - hashify object
 			$this.set.currentHash = priv.hashify($this.set.filteredBy);
@@ -586,6 +586,7 @@
 				itemsLen = items.length,
 				sortBy = $this.set.filteredBy.sort.value[0],
 				i = 0,
+				price = '',
 				sortArr = [];
 
 
@@ -593,7 +594,11 @@
 				//Create array
 				sortArr[i] = {obj: items[i]};
 				if(sortBy === 'price') {
-					sortArr[i][sortBy] = parseInt(items[i].price.replace(/^\D+|&#160;|\D+$/g, ''));
+					price = items[i].price;
+					if(price.indexOf('sale') !== -1) price = price.substring(price.indexOf('sale'));
+					price = parseInt(price.replace(/^\D+|&#160;|\D+$/g, ''));
+					if(isNaN(price)) price = 99999999;
+					sortArr[i][sortBy] = price;
 				} else if(sortBy === 'news') {
 					sortArr[i][sortBy] = items[i].newsmarker !== undefined ? 0 : 10;
 				} else {
@@ -632,6 +637,7 @@
 				len = items.length,
 				range = null,
 				start = 0,
+				hash = '',
 				html = '';
 
 			if($this.set.limit !== 'none') {
@@ -640,9 +646,8 @@
 					$this.set.pages = Math.ceil(len / $this.set.limit);
 					$this.find('.paging').removeClass('disabled');
 					range = $this.set.limit * $this.set.filteredBy.page;
-					start = $this.set.currentPageLoaded === 1 ? $this.set.currentPageLoaded * $this.set.limit : ($this.set.filteredBy.page - 1) * $this.set.limit;
-					$this.set.currentPageLoaded = $this.set.filteredBy.page;
-					len = (range > items.length) ? start + (items.length % $this.set.limit) : range;
+					start = $this.set.onFirstLoad !== false ? $this.set.onFirstLoad * $this.set.limit : ($this.set.filteredBy.page - 1) * $this.set.limit;
+					len = (range > items.length) ? (Math.floor(items.length / $this.set.limit) * $this.set.limit) + (items.length % $this.set.limit) : range;
 					if($this.set.filteredBy.page > 1) {
 						$this.find('.prev').closest('.paging').removeClass('disabled');
 					} else {
@@ -662,7 +667,9 @@
 				$this.set.pages = 1;
 			}
 
-			$this.find('.page-total').text($this.set.pages);
+			$this.find('.' + $this.set.pageTotalClass).text($this.set.pages);
+			$this.find('.' + $this.set.itemTotalClass).text(items.length);
+			$this.find('.' + $this.set.currentTotalClass).text(len);
 
 			if($this.set.filteredItems) $this.set.filteredItems(items);
 
@@ -672,12 +679,23 @@
 				html += priv.renderItemTemplate.apply($this, [items[i]]);
 			}
 
-			if($this.set.appendItems && $this.set.pages !== 1 && $this.set.filteredBy.page !== 1) {
+			if($this.set.appendItems && $this.set.pages !== 1 && $this.set.filteredBy.page !== 1 && $this.set.onFirstLoad !== 0) {
 				$this.find('#' + $this.set.itemContId).append(html);
 			} else {
 				$this.find('#' + $this.set.itemContId).html(html);
 			}
+
+			$this.set.onFirstLoad = false;
 			
+			//Replace all hashes
+			hash = $this.set.currentHash.indexOf('#') === -1 ? '#' + $this.set.currentHash : $this.set.currentHash;
+			$this.find('#' + $this.set.itemContId + ' a').each(function() {
+				var href = $(this).attr('href');
+
+				if(href.indexOf('#') !== -1) href = href.substring(0, href.indexOf('#'));
+				$(this).attr('href', href + hash);
+			});
+
 			if($this.set.afterItemsRendered !== undefined) $this.set.afterItemsRendered();
 		},
 		renderItemTemplate: function(obj) {
@@ -922,7 +940,11 @@
 		updateWHash: false,
 		itemContId: 'item-cont',
 		filterSelectedClass: 'selected',
-		groupClass: 'filter-group'
+		groupClass: 'filter-group',
+		pageTotalClass: 'page-total',
+		pageCurrentClass: 'current-page',
+		itemTotalClass: 'item-total',
+		currentTotalClass: 'current-total'
 	};
 
 	var privateOpts = {
@@ -931,7 +953,7 @@
 		latestCat: '',
 		currentItems: [],
 		oldLimit: null,
-		currentPageLoaded: 1,
+		onFirstLoad: false,
 		pages: 1
 	};
 
