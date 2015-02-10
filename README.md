@@ -335,6 +335,9 @@ Category URI. Everything after the root and no slash is needed in the beginning.
 
 ### Changelog ###
 
+**Version 0.5.5** 
+Fixed some bugs that were also in to "beforeAPI" branch. All anchors are updated with hash on filter change. Fixed a bug with reload with pages and clicking on next. Added selectors for pages/items remaining.
+
 **Version 0.5.4** 
 Added in fall backs for possibly undefined price template attributes.
 
@@ -367,6 +370,9 @@ Added a new rendering attribute. {attr|'object key'} i.e. {attr|badges} added ti
 
 **Version 0.3.0** 
 *WARNING BREAKING CHANGES* Filter is now working against a new JSON object returned from Symfony instead of directly against Silk. Some added features are the filter works against all products category agnostic this means also that the category needs to be sent in as a parameter. Pre-sort has also been added as a feature along with some more classes to easily hide/show products while filter loads.
+
+**Version 0.2.6 - Branch beforeAPI** 
+Tidied up several issues. All product URL's hashes are updated on filter change. Price is now sorted with sale prices also. Fixed issues on first load of products.
 
 **Version 0.2.5 - Branch beforeAPI**
 Fixed an issue regarding reloading of category products. Not all products were reloaded.

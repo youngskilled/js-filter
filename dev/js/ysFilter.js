@@ -58,10 +58,9 @@
 						//Now we can sort the array without screwing original order.
 						if($this.set.preSort !== false) {
 							priv.gatherItems.apply($this);
-						} else {
+						} else if($this.set.debug === true) {
 							//Replace even on first load if debug: true
-							if($this.set.debug === true) 
-								priv.gatherItems.apply($this);
+							priv.gatherItems.apply($this);
 						}
 					}
 				}
@@ -424,7 +423,7 @@
 					$this.set.filteredBy.page += 1;
 					$this.set.currentHash = priv.hashify($this.set.filteredBy);
 					if($this.set.currentHash.length > 0) window.location.hash = $this.set.currentHash;
-					$this.find('.current-page').text($this.set.filteredBy.page);
+					$this.find('.' + pageCurrentClass).text($this.set.filteredBy.page);
 					priv.gatherItems.apply($this);
 				}
 				return false;
@@ -437,7 +436,7 @@
 					$this.set.filteredBy.page -= 1;
 					$this.set.currentHash = priv.hashify($this.set.filteredBy);
 					if($this.set.currentHash.length > 0) window.location.hash = $this.set.currentHash;
-					$this.find('.current-page').text($this.set.filteredBy.page);
+					$this.find('.' + pageCurrentClass).text($this.set.filteredBy.page);
 					priv.gatherItems.apply($this);
 				}
 			});
@@ -449,12 +448,12 @@
 				if($paging.hasClass('viewing-all')) {
 					$this.set.limit = $this.set.oldLimit;
 					$paging.removeClass('viewing-all');
-					$this.find('.current-page').text($this.set.filteredBy.page);
+					$this.find('.' + pageCurrentClass).text($this.set.filteredBy.page);
 				} else {
 					$this.set.oldLimit = $this.set.limit;
 					$this.set.limit = 'none';
 					$paging.addClass('viewing-all');
-					$this.find('.current-page').text(1);
+					$this.find('.' + pageCurrentClass).text(1);
 				}
 				priv.gatherItems.apply($this);
 			});
@@ -825,17 +824,18 @@
 				itemsLen = items.length,
 				sortBy = preSortBy || $this.set.filteredBy.sort.value[0],
 				sortId = (preSortBy && preSortDir) ? preSortBy + '-' + preSortDir : $this.set.filteredBy.sort.value.join('-'),
+				sortDir = preSortDir || $this.set.filteredBy.sort.value[1],
 				i = 0,
+				price = 0,
 				sortArr = [];
 
 			for (i = 0; i < itemsLen; i++) {
 				//Create array
 				sortArr[i] = {obj: items[i]};
 				if(sortBy === 'price') {
-					if(parseFloat(items[i].price.priceAsNumber, 10) != items[i].price.priceAsNumber)
-						foo = items[i].price;
-					// console.log(parseInt(items[i].price.priceAsNumber, 10), items[i].price);
-					sortArr[i][sortBy] = parseFloat(items[i].price.priceAsNumber, 10);
+					price = parseFloat(items[i].price.priceAsNumber, 10);
+					if(items[i].price.soldout) price = sortDir === 'dsc' ? 0 : 999999999;
+					sortArr[i][sortBy] = price;
 				} else if(sortBy === 'news') {
 					sortArr[i][sortBy] = items[i].price.newProduct ? 0 : 10;
 				} else {
@@ -865,7 +865,7 @@
 				});
 			}
 
-			if((preSortDir || $this.set.filteredBy.sort.value[1]) === 'dsc') sortArr.reverse();
+			if(sortDir === 'dsc') sortArr.reverse();
 
 			//Clean array before reloading objects
 			$this.set.currentItems = [];
@@ -894,19 +894,12 @@
 					range = $this.set.limit * $this.set.filteredBy.page;
 					len = (range > len) ? len : range;
 
-					//Force reload of html
-					$this.set.pages = 1;
-
 					if(len !== range) {
 						//If len equals range then there we've met the max and should hide paging.
 						$this.find('.paging').addClass('disabled');
 					}
 
-				} else {
-					//Set up for paging environment. Not load.
 				}
-
-				$this.set.initialLoad = false;
 
 			} else if($this.set.limit !== 'none') {
 
@@ -946,7 +939,9 @@
 				$this.set.pages = 1;
 			}
 
-			$this.find('.page-total').text($this.set.pages);
+			$this.find('.' + pageTotalClass).text($this.set.pages);
+			$this.find('.' + $this.set.itemTotalClass).text(items.length);
+			$this.find('.' + $this.set.currentTotalClass).text(len);
 
 			for (var i = start; i < len; i++) {
 				//Chance to add more items to the object. Must also be in the template.
@@ -955,12 +950,22 @@
 				html += priv.renderItemTemplate.apply($this, [items[i]]);
 			}
 
-			if($this.set.appendItems && $this.set.pages !== 1 && $this.set.filteredBy.page !== 1) {
+			if($this.set.appendItems && $this.set.pages !== 1 && $this.set.filteredBy.page !== 1 && $this.set.initialLoad === false) {
 				$this.find('#' + $this.set.itemContId).append(html);
 			} else {
 				$this.find('#' + $this.set.itemContId).html(html);
 			}
 			
+			//Replace all hashes
+			hash = $this.set.currentHash.indexOf('#') === -1 ? '#' + $this.set.currentHash : $this.set.currentHash;
+			$this.find('#' + $this.set.itemContId + ' a').each(function() {
+				var href = $(this).attr('href');
+
+				if(href.indexOf('#') !== -1) href = href.substring(0, href.indexOf('#'));
+				$(this).attr('href', href + hash);
+			});
+			
+			$this.set.initialLoad = false;
 			if($this.set.afterItemsRendered !== undefined) $this.set.afterItemsRendered();
 		},
 		renderItemTemplate: function(obj) {
@@ -1228,7 +1233,11 @@
 		filterSelectedClass: 'selected',
 		groupClass: 'filter-group',
 		classProductNew: 'product-new',
-		classProductSale: 'product-sale'
+		classProductSale: 'product-sale',
+		pageTotalClass: 'page-total',
+		pageCurrentClass: 'current-page',
+		itemTotalClass: 'item-total',
+		currentTotalClass: 'current-total'
 	};
 
 	var privateOpts = {

@@ -1,6 +1,6 @@
 {
   "name": "ys-filter",
-  "version": "0.5.4",
+  "version": "0.5.5",
   "description": "For filtering and sorting products returned from Silk API.",
   "main": "dist/ysFilter.js",
   "authors": [
@@ -13,7 +13,7 @@
     "bower_components"
   ],
   "dependencies": {
-    "jquery": "1.11",
+    "jquery": ">1.11",
     "normalize-scss": "~3.0.1"
   }
 }
