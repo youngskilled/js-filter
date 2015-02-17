@@ -423,7 +423,7 @@
 					$this.set.filteredBy.page += 1;
 					$this.set.currentHash = priv.hashify($this.set.filteredBy);
 					if($this.set.currentHash.length > 0) window.location.hash = $this.set.currentHash;
-					$this.find('.' + pageCurrentClass).text($this.set.filteredBy.page);
+					$this.find('.' + $this.set.pageCurrentClass).text($this.set.filteredBy.page);
 					priv.gatherItems.apply($this);
 				}
 				return false;
@@ -436,7 +436,7 @@
 					$this.set.filteredBy.page -= 1;
 					$this.set.currentHash = priv.hashify($this.set.filteredBy);
 					if($this.set.currentHash.length > 0) window.location.hash = $this.set.currentHash;
-					$this.find('.' + pageCurrentClass).text($this.set.filteredBy.page);
+					$this.find('.' + $this.set.pageCurrentClass).text($this.set.filteredBy.page);
 					priv.gatherItems.apply($this);
 				}
 			});
@@ -448,12 +448,12 @@
 				if($paging.hasClass('viewing-all')) {
 					$this.set.limit = $this.set.oldLimit;
 					$paging.removeClass('viewing-all');
-					$this.find('.' + pageCurrentClass).text($this.set.filteredBy.page);
+					$this.find('.' + $this.set.pageCurrentClass).text($this.set.filteredBy.page);
 				} else {
 					$this.set.oldLimit = $this.set.limit;
 					$this.set.limit = 'none';
 					$paging.addClass('viewing-all');
-					$this.find('.' + pageCurrentClass).text(1);
+					$this.find('.' + $this.set.pageCurrentClass).text(1);
 				}
 				priv.gatherItems.apply($this);
 			});
@@ -939,7 +939,7 @@
 				$this.set.pages = 1;
 			}
 
-			$this.find('.' + pageTotalClass).text($this.set.pages);
+			$this.find('.' + $this.set.pageTotalClass).text($this.set.pages);
 			$this.find('.' + $this.set.itemTotalClass).text(items.length);
 			$this.find('.' + $this.set.currentTotalClass).text(len);
 

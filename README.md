@@ -335,6 +335,9 @@ Category URI. Everything after the root and no slash is needed in the beginning.
 
 ### Changelog ###
 
+**Version 0.5.7** 
+Fixed paging errors. Referring to non-existing variables
+
 **Version 0.5.6** 
 Fixed a bug that showed categories in specific depth. When those categories had products directly related to them.
 
