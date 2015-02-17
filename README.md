@@ -335,6 +335,9 @@ Category URI. Everything after the root and no slash is needed in the beginning.
 
 ### Changelog ###
 
+**Version 0.5.6** 
+Fixed a bug that showed categories in specific depth. When those categories had products directly related to them.
+
 **Version 0.5.5** 
 Fixed some bugs that were also in to "beforeAPI" branch. All anchors are updated with hash on filter change. Fixed a bug with reload with pages and clicking on next. Added selectors for pages/items remaining.
 

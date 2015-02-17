@@ -204,7 +204,7 @@
 						}
 					}
 
-					if(desc.indexOf('::') !== -1) {
+					if(desc.indexOf('::') !== -1 || cat === 'categories') {
 						//Filter out categories not in initial category. 
 						//Products can be even found in other categories that are not relevant.
 						if(underCat.indexOf($this.set.category) !== 0) continue;
