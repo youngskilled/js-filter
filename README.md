@@ -335,6 +335,9 @@ Category URI. Everything after the root and no slash is needed in the beginning.
 
 ### Changelog ###
 
+**Version 0.5.8** 
+Changed the order in which items are added in additive filtering. If several products are chosen in the same filter then the products chosen last are furthest up.
+
 **Version 0.5.7** 
 Fixed paging errors. Referring to non-existing variables
 

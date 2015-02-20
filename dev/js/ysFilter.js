@@ -605,7 +605,8 @@
 				filterValue = '',
 				tmpArr = [],
 				newItems = [],
-				renderItems = [];
+				renderItems = [],
+				filteredByReverse = [];
 
 			var catTotal, catId, itemTotal, $filter, $item, create, maxLength, prop, compiledObj, updateFilterObj, depth, subCat;
 
@@ -641,12 +642,15 @@
 				} else if(filteredBy[filter].type === 'sor') {
 					//Concatente all arrays
 					//Product only needs to match one value to be relevant.
-					for (i = 0; i < filteredBy[filter].value.length; i++) {
+					//reverse items so that the newest added come highest up
+					filteredByReverse = filteredBy[filter].value.slice(0);
+					filteredByReverse.reverse();
+					for (i = 0; i < filteredByReverse.length; i++) {
 						//Runs per set of values in a filter.
 						if(catRegexp.test(filter)) {
-							tmpArr[i] = matchUri(filter, filteredBy[filter].value[i]);
+							tmpArr[i] = matchUri(filter, filteredByReverse[i]);
 						} else {
-							tmpArr[i] = totalItems[filter][filteredBy[filter].value[i]];
+							tmpArr[i] = totalItems[filter][filteredByReverse[i]];
 						}
 					}
 					//Join them together to create newItems.
