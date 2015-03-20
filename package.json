@@ -1,6 +1,6 @@
 {
   "name": "ys-filter",
-  "version": "0.5.8",
+  "version": "1.0.0",
   "description": "For filtering and sorting products returned from Silk API.",
   "main": "dev/index.html",
   "homepage": "http://youngskilled.com",

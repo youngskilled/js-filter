@@ -9,41 +9,53 @@ This means when the page is indexed the default HTML page is the only page that 
 To enable sharing the page's hash is updated every time a filter selection is made which is not seen by a search engine as being a new page. This is also semantically correct in that we are effectively just showing the same content, similar to how an anchor shows the same content but a different section of that content.
 This plugin uses a JSON string that has all the information for all the products that are displayed. On every filtering the results are shown nearly instantly as there are no requests being sent or received making the filter more responsive.
 
-### Usage ###
 
+### Dependencies ###
+ECMAScript > 5.1
+jQuery > 1.7
+
+
+### Usage ###
 
 Initiate with `$(selector).ysFilter({'some':'property'});`   
 Invoke methods with `$(selector).ysFilter('method', {'some':'property'});`   
 Example
 
-	$('.prod-pics-sect').ysFilter({
+	$('#ysFilter').ysFilter({
 		debug: true,
-		zIndex: 2000
-	})
+		appendItems: true
+	});
  
 
 ### HTML ###
 
 This is the basic page structure required for the filter to work.
 	
-	<div id="filter-container" data-url="" data-category="">
-	     <!-- All things related to filter are collected here. -->
-	     <div class="filter-group" data-type="">
-	         <div id="color" class="filter-group" data-type="<!-- See "Data Types" below -->" data-create="<!-- See "Data Create" below -->"></div>
-	         <!-- id === desc->param_types repeat above if needed -->
-	     </div>
-	     <div class="paging">
-	         <a class="next"></a>
-	         <a class="prev"></a>
-	     </div>
-	     <div class="item-container">
-	         <!-- items must come directly after parent -->
-	     <div>
+	<div id="ysFilter" data-url="" data-category="">
+    <div class="filterControls" data-type="">
+      <div id="color" class="filterGroup" data-type="<!-- See "Data Types" below -->" data-create="<!-- See "Data Create" below -->">
+      	<!-- HTML is appended here so it's ok to have elements here. -->
+      	<!-- Each value receives class filterControls-value -->
+      </div>
+      <!-- id === filterDescriptions[key] repeat above if needed -->
+    </div>
+    <div id="filterItems">
+      <!-- items must come directly after parent there shouldn't be any container surrounding these -->
+    <div>
+    <nav class="filterPaging">
+      <a class="filterPaging-prev"></a>
+      <a class="filterPaging-all"></a>
+      <a class="filterPaging-next"></a>
+    </nav>
 	</div>
+
+Following classes are added to the filter during different phases.  
+`ysFilter--loading`,`ysFilter--init`,`ysFilter--filtered`,`ysFilter--loaded`
+
 
 The following structure you can use in combination with Emmet for tab completion.
 
-	div#filter-container[data-url="" data-category=""]>div.filter-group[data-type=""]+div.paging>a.next+a.prev^div.item-container
+	div#ysFilter[data-url="" data-category=""]>div.filterControls[data-type=""]+div#filterItems+div.filterPaging>a.filterPaging-prev+a.filterPaging-all+a.filterPaging-next
 
 ### Properties ###
 
@@ -333,7 +345,14 @@ Category URI. Everything after the root and no slash is needed in the beginning.
 	shop/all
 
 
-### Changelog ###
+## Changelog ##
+
+**Version 1.0.0** 
+Filter now has a complete feature set. A few features are still available to be added, these are regarding more semantic filtering versions i.e. range scale etc.
+
+* Variants are now handled by the filter. Showing even which of the variants that is available.
+* Classes have changed in this version to a more OOCSS way of doing things. This means if other clients update to this then it will require class changes on menu etc or if you simply state as options in the filter.
+
 
 **Version 0.5.8** 
 Changed the order in which items are added in additive filtering. If several products are chosen in the same filter then the products chosen last are furthest up.
@@ -410,15 +429,90 @@ Fixed a bug with color being read as an array and outputted as a string
 **Version 0.1.1** 
 Fixed category parsing, was removing a letter if there was only one category.
 
+## Understanding the core code ##
 
-### Development ###
+Ajax request gets three major elements: `filter`, `productIds` and `products`.
+`filter` has arrays of which productID's are relevant for each filtering mechanism.
+`productIds` are the ID's used to match products and filters together. It's an object mapping array position of products to their ID's
+`products` this contains the information of each individual product.
+
+┃  
+┣━ init  
+┃     Runs first this gets the AJAX and is the starting point for all further interactions.  
+┃     We also read the hash here to determine the current state for the filter.  
+┃  
+┣━ preFilter  
+┃     Filters out all categories that are irrelevant and reduces the data set.
+┃     We get our currentItems from this function and relevantFilters.
+┃  
+┣━┳━━ buildFilter  
+┃ ┃      Using the html filterControls-group creates the filtering html for the user to control the page with.  
+┃ ┃      This only occurs once on page load.  
+┃ ┃  
+┃ ┗━━ buildFilterTemplate  
+┃        This is called per filterControls-group to render each of the filters.  
+┃        This is the where the HTML is produced for the html filters.  
+┃  
+┣━┳━━ enableEvents  
+┃ ╻       Called after the filter is built and is only called once to instantiate it.  
+┃ ╻       This listens to pages and filtering events.  
+┃ ╻       
+┃ ┗━━ updateFilterObj  
+┃        Creates a filter object which determines the state of the filter.  
+┃        Triggered only from events, when the customer updates the filter.  
+┃        Sends the obj to the hashify function which updates the URL.  
+┃  
+┣ ┳ ━ dehashify (Extra functions run if hash in URL)  
+┃ ╻      Extract information from hash to creates the filter object.  
+┃ ╻  
+┃ ┗ ━ reSelect  
+┃        Using the filter object disable certain filter elements.  
+┃  
+┣━ gatherItems  
+┃     Based upon the filter object intersect the arrays and deploy the major logic behind the filter.  
+┃     This listens to pages and filtering events.  
+┃  
+┣━ updateFilterHTML  
+┃     Updates the HTML so that the customer can see which filters are still relevant.  
+┃  
+┣ ━ sortItems  
+┃     Sort items based on the products properties.  
+┃  
+┗━┳━━ renderItems  
+  ┃      Define paging and send through for looping through the product templates.  
+  ┃      Several callbacks here to hook into for editing what is rendered on the page.  
+  ┃      Final step before rendering out the products on the page.  
+  ┃  
+  ┣━━ renderItemTemplate  
+  ┃      Connect variants product objects here to show all related variant information.  
+  ┃      Runs through templates received in AJAX call.  
+  ┃  
+  ┣━━ renderItemPrice  
+  ┃      Uses relevant template to display based on price object.  
+  ┃  
+  ┗━━ renderItemReplace  
+         Major replacement of product attributes.  
+
+Some helper functions not mentioned above.
+`relatedToITems` maps even variants to objects in `products` to be later rendered by `renderItemTemplate` It's used in `preFilter` and `updateFilterHTML`
+`hexOrImage` pertains to attributes whether they should use the hex code available or use the image. Image always takes precedent.
+`dehasify` reads the `window.location.hash` and turns it into an object for using with the filter.
+`hashify` updates the `window.location.hash`
+`titleCase` is a filtering function for changing the output of the productObjects. Use in template with a `|`
+`getLocale` if this needs to be done.
+`keysToItems` Maps productID's to products
+`unique` Takes a simple array and removes duplicates. Don't use with an object is it doesn't test depth.
+`intersect` Takes a two simple arrays and removes duplicates. Don't use with an object is it doesn't test depth.
+
+
+## Development ##
 
 **Requirements**
 * This plugin requires [node](http://nodejs.org/), [gulpjs](http://gulpjs.com/) and [bower](http://bower.io/).
 * Follow JSCS guidelines a styling-example.js is also included.
 * Run `bower install` and `npm install` to get dev dependencies. Bower and Gulp is assumed to be running globally.
 
-### Contact ###
+## Contact ##
 
 This is a small plugin by Young Skilled.
-Contact [richard](mailto:richard@youngskilled) for more details about this plugin.
+Contact [support](mailto:support@youngskilled) for more details about this plugin.
