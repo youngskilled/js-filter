@@ -19,6 +19,7 @@ jQuery > 1.7
 
 Initiate with `$(selector).ysFilter({'some':'property'});`   
 Invoke methods with `$(selector).ysFilter('method', {'some':'property'});`   
+All classes and ids used in properties should omit `.` and `#`
 Example
 
 	$('#ysFilter').ysFilter({
@@ -124,6 +125,25 @@ Using several images on product listing for roll overs etc.
 *Expects* `integer`
 
 Used in conjunction with onItem. After a certain amount of products built do this.
+
+#### outputChosenFiltersId ####
+
+*Default* `false`  
+*Expects* `false, id`
+
+Specify a container where you would like the current filters which are selected to be outputted. If in the filter controls you have an anchor it will copy that with all the classes removing any ID's into this field. Otherwise it will create an anchor per filter.
+
+	$(selector).ysFilter({outputChosenFiltersId: 'js-filtersChosen-list'})
+
+#### forceHex ####
+
+*Default* `false`  
+*Expects* `boolean`
+
+Make the renderer use hex when rendering products and filter. Used in conjunction with background color/images for related products and color filter controls.
+
+	$(selector).ysFilter({forceHex: false})
+
 
 #### onItem ####
 
@@ -346,6 +366,9 @@ Category URI. Everything after the root and no slash is needed in the beginning.
 
 
 ## Changelog ##
+
+**Version 1.1.0** 
+Final fixes to the related products. New features also added inc. `outputChosenFiltersId` to paste in filters which are selected. `forceHex` force use hex instead of using image which is default.
 
 **Version 1.0.0** 
 Filter now has a complete feature set. A few features are still available to be added, these are regarding more semantic filtering versions i.e. range scale etc.
