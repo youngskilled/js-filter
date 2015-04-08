@@ -47,26 +47,8 @@
 					$this.set.limit = $this.filter.settings.limit;
 					$this.set.pages = Math.ceil($this.set.initItems.length / $this.set.limit);
 
-					//If previously filtered. Filter and render relevant products.
-					if($this.set.currentHash !== '') {
-						$this.set.filteredBy = priv.dehashify.apply($this, [window.location.hash]);
-						if($this.set.filteredBy.page > 1) {
-							$this.find('.' + $this.set.paging.prevBtnClass).closest('.' + $this.set.paging.contClass).show();
-							$this.set.initialLoad = true;
-						}
-
-						priv.gatherItems.apply($this);
-						if($this.set.outputChosenFiltersId !== false) priv.createChosenElements.apply($this);
-						priv.reSelect.apply($this);
-					} else {
-						//Only replace objects in certain circumstances otherwise don't update page.
-						if($this.set.preSort !== false) {
-							priv.gatherItems.apply($this);
-						} else if($this.set.debug === true) {
-							//Replace even on first load if debug: true
-							priv.gatherItems.apply($this);
-						}
-					}
+					priv.updateFilterObjFromHash({data:{this:$this,init:true}});
+                    $(window).on('hashchange', {this:$this,init:false}, priv.updateFilterObjFromHash);
 				}
 			});
 
@@ -208,7 +190,7 @@
 				create = $filter.data('create');
 				tplAdditions = $this.set.filterOptions[catId] || {};
 
-				for (var underCat in relevantFilters[cat]) {
+                for (var underCat in relevantFilters[cat]) {
 					desc = underCat;
 
 					if($this.filter.filterDescriptions[cat] !== undefined && $this.filter.filterDescriptions[cat][underCat] !== undefined) {
@@ -382,7 +364,6 @@
 				var type = $(this).closest('.' + $this.set.groupClass).data('type');
 				var cat = $(this).closest('.' + $this.set.groupClass).attr('id');
 				var val = $(this).data('value');
-				
 				//if sor select as latestCat
 				if(type !== 's' && type !== 's1') {
 					$this.set.latestCat = cat;
@@ -564,6 +545,36 @@
 			$('#' + $this.set.outputChosenFiltersId).append(str);
 
 		},
+        updateFilterObjFromHash: function(e) {
+            $this = e.data.this;
+            init = e.data.init;
+            $this.set.currentHash = window.location.hash;
+            //If previously filtered. Filter and render relevant products.
+            $this.set.filteredBy = priv.dehashify.apply($this, [window.location.hash]);
+            
+            if($this.set.currentHash !== '') {
+                if($this.set.filteredBy.page > 1) {
+                    $this.find('.' + $this.set.paging.prevBtnClass).closest('.' + $this.set.paging.contClass).show();
+                    $this.set.initialLoad = true;
+                }
+
+                priv.gatherItems.apply($this);
+                if($this.set.outputChosenFiltersId !== false) priv.createChosenElements.apply($this);
+                priv.reSelect.apply($this);
+            } else if(init) {
+                //Only replace objects in certain circumstances otherwise don't update page.
+                if($this.set.preSort !== false) {
+                    priv.gatherItems.apply($this);
+                } else if($this.set.debug === true) {
+                    //Replace even on first load if debug: true
+                    priv.gatherItems.apply($this);
+                }
+            } else {
+                priv.gatherItems.apply($this);
+            }
+            //Filter items have changed do callback. 
+            if($this.set.onFilterChanged !== undefined) $this.set.onFilterChanged();
+        },
 		updateFilterObj: function(type, cat, val) {
 			//Must update
 			//Updates filter object.
@@ -613,7 +624,7 @@
 					} else {
 						currVal.push(val);
 					}
-
+                    
 					if(currVal.length > 0) {
 						$this.set.filteredBy[cat] = {type: type, value: currVal};
 					} else {
@@ -635,13 +646,6 @@
 			window.location.hash = $this.set.currentHash;
 			if($this.set.currentHash === '') $(window).scrollTop(currentScroll);
 
-			//Gather items from each filter.
-			priv.gatherItems.apply($this);
-			
-			//Filter items have changed do callback. 
-			if($this.set.onFilterChanged !== undefined) $this.set.onFilterChanged();
-
-
 			if($this.set.updateWHash !== false) {
 				$('.' + $this.set.updateWHash).each(function() {
 					var href = $(this).attr('href');
@@ -657,7 +661,18 @@
 			var $filterOpt = {};
 			var filterVal = '';
 			var type = '';
-
+            var filters = $this.filter.settings.filter.slice();
+            filters.push(['sort']);//just to have it inside the loop for verification.
+            console.log(filters);
+            console.log(filteredBy);
+            //first, let's reset the objects which are not in filteredBy but in filters.
+            for(var filter in filters) {
+                filter = filters[filter][0];
+                if(!filteredBy[filter]) { 
+                    $filter = $this.find('#' + filter);
+                    $filter.find('.'+$this.set.selectedClass+', option[selected=selected]').removeClass($this.set.selectedClass).removeAttr('selected');
+                }
+            }
 			for(var filter in filteredBy) {
 				$filter = $this.find('#' + filter);
 				filterVal = filteredBy[filter].value;
@@ -666,24 +681,45 @@
 				if(filter === 'sort') filterVal = filteredBy[filter].value.join('-');
 
 				if(typeof filteredBy[filter].value === 'object' && filter !== 'sort') {
+                    //then let's reset the other selected here, so we can use this function on complete refresh.
+                    if(type === 'select' || type === 'multiSelect') {
+                        $filter.find('option').removeAttr('selected');
+                    } else {
+                        if(type === 'fakeSelect') {
+                            $filter.find('li.'+$this.set.selectedClass).removeClass($this.set.selectedClass);
+                        } else {
+                            $filter.find('.' + $this.set.selectedClass).removeClass($this.set.selectedClass);
+                        }
+                    }
 					for(var i = 0; i < filteredBy[filter].value.length; i++) {
 						filterVal = filteredBy[filter].value[i].replace(/\W/g, '-');
 						if(type === 'select' || type === 'multiSelect') {
 							$filter.find('#' + filter + '-' + filterVal).attr('selected', true);
 						} else {
 							if(type === 'fakeSelect') {
-								$filter.find('#' + filter + '-' + filterVal).closest('li').addClass($this.set.selectedClass);
+                                $filter.find('#' + filter + '-' + filterVal).closest('li').addClass($this.set.selectedClass);
 							} else {
 								$filter.find('#' + filter + '-' + filterVal).addClass($this.set.selectedClass);
 							}
 						}
 					}
 				} else {
+                    //first, reset!
+                    if(type === 'select' || type === 'multiSelect') {
+                        $filter.find('option').removeAttr('selected');
+                    } else {
+                        if(type === 'fakeSelect') {
+                            $filter.find('.selected').removeClass('selected');
+                            $filter.find('.'+$this.set.selectedClass).removeClass($this.set.selectedClass);
+                        } else {
+                            $filter.find('.'+$this.set.selectedClass).removeClass($this.set.selectedClass);
+                        }
+                    }
 					$filterOpt = $filter.find('#' + filter + '-' + filterVal.replace(/\W/g, '-'));
 					if(type === 'select' || type === 'multiSelect') {
 						$filterOpt.attr('selected', true);
 					} else if(type === 'fakeSelect') {
-						$filterOpt.addClass('selected');
+						$filterOpt.closest('li').addClass($this.set.selectedClass);
 						$filter.find('.fake-select').addClass('selected').find('span').text($filterOpt.text());
 					} else {
 						$filterOpt.addClass($this.set.selectedClass);
@@ -691,14 +727,12 @@
 				}
 			}
 
-			
-
 			//Filter items have changed do callback. 
 			if($this.set.onFilterChanged !== undefined) $this.set.onFilterChanged();
 
 		},
 		gatherItems: function() {
-			//Collect all items to be printed out based on filter.
+            //Collect all items to be printed out based on filter.
 			var $this = this;
 			var catRegexp = /_\d$/;
 			var filteredBy = $this.set.filteredBy;
@@ -804,7 +838,6 @@
 			var updateFilterObj;
 			var depth;
 			var subCat;
-
 			if(filters === 0) {
 				//Same here if the intersect returns nothing.
 				//Clone filter items to return everything back to original state.
@@ -1130,13 +1163,15 @@
 			}
 			
 			//Replace all hashes
-			hash = $this.set.currentHash.indexOf('#') === -1 ? '#' + $this.set.currentHash : $this.set.currentHash;
-			$this.find('#' + $this.set.itemContId + ' a').each(function() {
-				var href = $(this).attr('href');
+            if($this.set.appendHashValue == undefined || $this.set.appendHashValue) {
+                hash = $this.set.currentHash.indexOf('#') === -1 ? '#' + $this.set.currentHash : $this.set.currentHash;
+                $this.find('#' + $this.set.itemContId + ' a').each(function() {
+                    var href = $(this).attr('href');
 
-				if(href.indexOf('#') !== -1) href = href.substring(0, href.indexOf('#'));
-				$(this).attr('href', href + hash);
-			});
+                    if(href.indexOf('#') !== -1) href = href.substring(0, href.indexOf('#'));
+                    $(this).attr('href', href + hash);
+                });
+            }
 			
 			$this.set.initialLoad = false;
 			//Callback for when items have finished rendering.
