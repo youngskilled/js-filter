@@ -1288,7 +1288,7 @@
 
 			//Overwrite the price property with the price template.
 			price = price.replace(/\{(.+?)\}/g, function(value, text) {
-				return obj.price[text];
+				return obj.price[text] === undefined ? '' : obj.price[text];
 			});
 
 			//Returns obj.price with correct HTML
