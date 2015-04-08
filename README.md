@@ -538,4 +538,4 @@ Some helper functions not mentioned above.
 ## Contact ##
 
 This is a small plugin by Young Skilled.
-Contact [support](mailto:support@youngskilled) for more details about this plugin.
+Contact [support](mailto:support@youngskilled.com) for more details about this plugin.
