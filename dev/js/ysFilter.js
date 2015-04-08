@@ -663,8 +663,6 @@
 			var type = '';
             var filters = $this.filter.settings.filter.slice();
             filters.push(['sort']);//just to have it inside the loop for verification.
-            console.log(filters);
-            console.log(filteredBy);
             //first, let's reset the objects which are not in filteredBy but in filters.
             for(var filter in filters) {
                 filter = filters[filter][0];
