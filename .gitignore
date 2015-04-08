@@ -13,3 +13,4 @@ bower_components/
 ._*
 Thumbs.db
 ehthumbs.db
+/nbproject/private/

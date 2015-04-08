@@ -895,9 +895,9 @@
 							} else {
 								if(create === 'fakeSelect') {
 									//Remove class disabled
-									$item.closest('li').removeClass($this.set.disabledClass).attr('title', intersected.length);
+									$item.closest('li').removeClass($this.set.disabledClass);
 								} else {
-									$item.removeClass($this.set.disabledClass).attr('title', intersected.length);
+									$item.removeClass($this.set.disabledClass);
 								}
 							}
 							itemTotal += intersected.length;
@@ -911,9 +911,9 @@
 							} else {
 								if(create === 'fakeSelect') {
 									//Remove class disabled
-									$item.closest('li').addClass($this.set.disabledClass).removeAttr('title');
+									$item.closest('li').addClass($this.set.disabledClass);
 								} else {
-									$item.addClass($this.set.disabledClass).removeAttr('title');
+									$item.addClass($this.set.disabledClass);
 								}
 							}
 
@@ -940,9 +940,9 @@
 
 					//If the whole category is empty hide category.
 					if(catTotal > 0) {
-						$filter.removeClass($this.set.disabledClass).attr('title', itemTotal);
+						$filter.removeClass($this.set.disabledClass);
 					} else {
-						$filter.addClass($this.set.disabledClass).removeAttr('title');
+						$filter.addClass($this.set.disabledClass);
 					}
 					
 				}
@@ -1418,7 +1418,7 @@
 			return newArr;
 		},
 		//Helper functions
-		unique: function(a)  {
+		unique: function(a) {
 			//Optimized: jsperf test http://jsperf.com/hash-sieving/3
 			//Returns an array with only unique values
 			var na = [];
