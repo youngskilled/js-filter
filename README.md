@@ -367,6 +367,9 @@ Category URI. Everything after the root and no slash is needed in the beginning.
 
 ## Changelog ##
 
+**Version 1.1.5** 
+Changes to how pagination works. Traditional paged views now working correctly. Support before for only appended items. Individual page navigation is now independently set instead of paging parent class.
+
 **Version 1.1.0** 
 Final fixes to the related products. New features also added inc. `outputChosenFiltersId` to paste in filters which are selected. `forceHex` force use hex instead of using image which is default.
 

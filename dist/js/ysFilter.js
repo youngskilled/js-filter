@@ -48,7 +48,7 @@
 					$this.set.pages = Math.ceil($this.set.initItems.length / $this.set.limit);
 
 					priv.updateFilterObjFromHash({data:{this:$this,init:true}});
-                    $(window).on('hashchange', {this:$this,init:false}, priv.updateFilterObjFromHash);
+					$(window).on('hashchange', {this:$this,init:false}, priv.updateFilterObjFromHash);
 				}
 			});
 
@@ -190,7 +190,7 @@
 				create = $filter.data('create');
 				tplAdditions = $this.set.filterOptions[catId] || {};
 
-                for (var underCat in relevantFilters[cat]) {
+				for (var underCat in relevantFilters[cat]) {
 					desc = underCat;
 
 					if($this.filter.filterDescriptions[cat] !== undefined && $this.filter.filterDescriptions[cat][underCat] !== undefined) {
@@ -461,11 +461,13 @@
 
 			$this.on('click', '.' + $this.set.paging.prevBtnClass, function(e) {
 				e.preventDefault();
+				var currentScroll = $(window).scrollTop();
 				//Prev Page
 				if($this.set.filteredBy.page > 1) {
 					$this.set.filteredBy.page -= 1;
 					$this.set.currentHash = priv.hashify($this.set.filteredBy);
-					if($this.set.currentHash.length > 0) window.location.hash = $this.set.currentHash;
+					window.location.hash = $this.set.currentHash;
+					$(window).scrollTop(currentScroll);
 					$this.find('.' + $this.set.pageCurrentClass).text($this.set.filteredBy.page);
 					priv.gatherItems.apply($this);
 				}
@@ -545,36 +547,36 @@
 			$('#' + $this.set.outputChosenFiltersId).append(str);
 
 		},
-        updateFilterObjFromHash: function(e) {
-            $this = e.data.this;
-            init = e.data.init;
-            $this.set.currentHash = window.location.hash;
-            //If previously filtered. Filter and render relevant products.
-            $this.set.filteredBy = priv.dehashify.apply($this, [window.location.hash]);
-            
-            if($this.set.currentHash !== '') {
-                if($this.set.filteredBy.page > 1) {
-                    $this.find('.' + $this.set.paging.prevBtnClass).closest('.' + $this.set.paging.contClass).show();
-                    $this.set.initialLoad = true;
-                }
+		updateFilterObjFromHash: function(e) {
+			$this = e.data.this;
+			init = e.data.init;
+			$this.set.currentHash = window.location.hash;
+			//If previously filtered. Filter and render relevant products.
+			$this.set.filteredBy = priv.dehashify.apply($this, [window.location.hash]);
+			
+			if($this.set.currentHash !== '') {
+				if($this.set.filteredBy.page > 1) {
+					$this.find('.' + $this.set.paging.prevBtnClass).removeClass('.' + $this.set.disabledClass);
+					$this.set.initialLoad = true;
+				}
 
-                priv.gatherItems.apply($this);
-                if($this.set.outputChosenFiltersId !== false) priv.createChosenElements.apply($this);
-                priv.reSelect.apply($this);
-            } else if(init) {
-                //Only replace objects in certain circumstances otherwise don't update page.
-                if($this.set.preSort !== false) {
-                    priv.gatherItems.apply($this);
-                } else if($this.set.debug === true) {
-                    //Replace even on first load if debug: true
-                    priv.gatherItems.apply($this);
-                }
-            } else {
-                priv.gatherItems.apply($this);
-            }
-            //Filter items have changed do callback. 
-            if($this.set.onFilterChanged !== undefined) $this.set.onFilterChanged();
-        },
+				priv.gatherItems.apply($this);
+				if($this.set.outputChosenFiltersId !== false) priv.createChosenElements.apply($this);
+				priv.reSelect.apply($this);
+			} else if(init) {
+				//Only replace objects in certain circumstances otherwise don't update page.
+				if($this.set.preSort !== false) {
+					priv.gatherItems.apply($this);
+				} else if($this.set.debug === true) {
+					//Replace even on first load if debug: true
+					priv.gatherItems.apply($this);
+				}
+			} else {
+				priv.gatherItems.apply($this);
+			}
+			//Filter items have changed do callback. 
+			if($this.set.onFilterChanged !== undefined) $this.set.onFilterChanged();
+		},
 		updateFilterObj: function(type, cat, val) {
 			//Must update
 			//Updates filter object.
@@ -624,7 +626,7 @@
 					} else {
 						currVal.push(val);
 					}
-                    
+
 					if(currVal.length > 0) {
 						$this.set.filteredBy[cat] = {type: type, value: currVal};
 					} else {
@@ -661,17 +663,20 @@
 			var $filterOpt = {};
 			var filterVal = '';
 			var type = '';
-            var filters = $this.filter.settings.filter.slice();
-            filters.push(['sort']);//just to have it inside the loop for verification.
-            //first, let's reset the objects which are not in filteredBy but in filters.
-            for(var filter in filters) {
-                filter = filters[filter][0];
-                if(!filteredBy[filter]) { 
-                    $filter = $this.find('#' + filter);
-                    $filter.find('.'+$this.set.selectedClass+', option[selected=selected]').removeClass($this.set.selectedClass).removeAttr('selected');
-                }
-            }
-			for(var filter in filteredBy) {
+			var filter;
+			var filters = $this.filter.settings.filter.slice();
+
+			filters.push(['sort']);//just to have it inside the loop for verification.
+
+			//first, let's reset the objects which are not in filteredBy but in filters.
+			for(filter in filters) {
+				filter = filters[filter][0];
+				if(!filteredBy[filter]) { 
+					$filter = $this.find('#' + filter);
+					$filter.find('.' + $this.set.selectedClass + ', option[selected=selected]').removeClass($this.set.selectedClass).removeAttr('selected');
+				}
+			}
+			for(filter in filteredBy) {
 				$filter = $this.find('#' + filter);
 				filterVal = filteredBy[filter].value;
 				type = $filter.data('create');
@@ -679,40 +684,40 @@
 				if(filter === 'sort') filterVal = filteredBy[filter].value.join('-');
 
 				if(typeof filteredBy[filter].value === 'object' && filter !== 'sort') {
-                    //then let's reset the other selected here, so we can use this function on complete refresh.
-                    if(type === 'select' || type === 'multiSelect') {
-                        $filter.find('option').removeAttr('selected');
-                    } else {
-                        if(type === 'fakeSelect') {
-                            $filter.find('li.'+$this.set.selectedClass).removeClass($this.set.selectedClass);
-                        } else {
-                            $filter.find('.' + $this.set.selectedClass).removeClass($this.set.selectedClass);
-                        }
-                    }
+					//then let's reset the other selected here, so we can use this function on complete refresh.
+					if(type === 'select' || type === 'multiSelect') {
+						$filter.find('option').removeAttr('selected');
+					} else {
+						if(type === 'fakeSelect') {
+							$filter.find('li.' + $this.set.selectedClass).removeClass($this.set.selectedClass);
+						} else {
+							$filter.find('.' + $this.set.selectedClass).removeClass($this.set.selectedClass);
+						}
+					}
 					for(var i = 0; i < filteredBy[filter].value.length; i++) {
 						filterVal = filteredBy[filter].value[i].replace(/\W/g, '-');
 						if(type === 'select' || type === 'multiSelect') {
 							$filter.find('#' + filter + '-' + filterVal).attr('selected', true);
 						} else {
 							if(type === 'fakeSelect') {
-                                $filter.find('#' + filter + '-' + filterVal).closest('li').addClass($this.set.selectedClass);
+								$filter.find('#' + filter + '-' + filterVal).closest('li').addClass($this.set.selectedClass);
 							} else {
 								$filter.find('#' + filter + '-' + filterVal).addClass($this.set.selectedClass);
 							}
 						}
 					}
 				} else {
-                    //first, reset!
-                    if(type === 'select' || type === 'multiSelect') {
-                        $filter.find('option').removeAttr('selected');
-                    } else {
-                        if(type === 'fakeSelect') {
-                            $filter.find('.selected').removeClass('selected');
-                            $filter.find('.'+$this.set.selectedClass).removeClass($this.set.selectedClass);
-                        } else {
-                            $filter.find('.'+$this.set.selectedClass).removeClass($this.set.selectedClass);
-                        }
-                    }
+					//first, reset!
+					if(type === 'select' || type === 'multiSelect') {
+						$filter.find('option').removeAttr('selected');
+					} else {
+						if(type === 'fakeSelect') {
+							$filter.find('.selected').removeClass('selected');
+							$filter.find('.' + $this.set.selectedClass).removeClass($this.set.selectedClass);
+						} else {
+							$filter.find('.' + $this.set.selectedClass).removeClass($this.set.selectedClass);
+						}
+					}
 					$filterOpt = $filter.find('#' + filter + '-' + filterVal.replace(/\W/g, '-'));
 					if(type === 'select' || type === 'multiSelect') {
 						$filterOpt.attr('selected', true);
@@ -730,7 +735,7 @@
 
 		},
 		gatherItems: function() {
-            //Collect all items to be printed out based on filter.
+			//Collect all items to be printed out based on filter.
 			var $this = this;
 			var catRegexp = /_\d$/;
 			var filteredBy = $this.set.filteredBy;
@@ -1089,18 +1094,18 @@
 			//Handle paging
 			if($this.set.initialLoad) {
 
-				if($this.set.appendItems) {
-					
-					//Take away page 1 and add the rest of the pages as long as there are enough products.
-					start = 0;
-					range = $this.set.limit * $this.set.filteredBy.page;
-					len = (range > len) ? len : range;
+				//start at 0 if append products start at page - 1 in not.
+				start = $this.set.appendItems ? 0 : ($this.set.limit * ($this.set.filteredBy.page - 1));
+				range = $this.set.limit * $this.set.filteredBy.page;
+				len = (range > len) ? len : range;
 
-					if(len !== range) {
-						//If len equals range then there we've met the max and should hide paging.
-						$this.find('.' + $this.set.paging.contClass).addClass($this.set.disabledClass);
-					}
+				if($this.set.filteredBy.page > 1) {
+					$this.find('.' + $this.set.paging.prevBtnClass).removeClass($this.set.disabledClass);
+				}
 
+				if(len !== range) {
+					//If len is larger than range then we've met the max and should disable next.
+					$this.find('.' + $this.set.paging.nextBtnClass).addClass($this.set.disabledClass);
 				}
 
 			} else if($this.set.limit !== 'none') {
@@ -1109,9 +1114,6 @@
 					//Set how many pages there are after filtering.
 					$this.set.pages = Math.ceil(len / $this.set.limit);
 
-					//Not sure this is right.
-					$this.find('.' + $this.set.paging.contClass).removeClass($this.set.disabledClass);
-					
 					//This gives us max products in pages...
 					range = $this.set.limit * $this.set.filteredBy.page;
 					//Where to start from.
@@ -1121,24 +1123,30 @@
 
 					//Show previous buttons if page count is greater than 1
 					if($this.set.filteredBy.page > 1) {
-						$this.find('.' + $this.set.paging.prevBtnClass).closest('.' + $this.set.paging.contClass).removeClass($this.set.disabledClass);
+						$this.find('.' + $this.set.paging.prevBtnClass).removeClass($this.set.disabledClass);
 					} else {
-						$this.find('.' + $this.set.paging.prevBtnClass).closest('.' + $this.set.paging.contClass).addClass($this.set.disabledClass);
+						$this.find('.' + $this.set.paging.prevBtnClass).addClass($this.set.disabledClass);
 					}
 
 					if(len !== range) {
 						//assume we are on the last page.
-						$this.find('.' + $this.set.paging.contClass).addClass($this.set.disabledClass);
+						//hide next leave all and prev.
+						$this.find('.' + $this.set.paging.nextBtnClass).addClass($this.set.disabledClass);
+					} else {
+						$this.find('.' + $this.set.paging.nextBtnClass).removeClass($this.set.disabledClass);
 					}
 				} else {
 					//Pages not needed too few items compared to limit.
 					$this.set.pages = 1;
+					//Disable all pagination
 					$this.find('.' + $this.set.paging.contClass).addClass($this.set.disabledClass);
-					$this.find('.' + $this.set.paging.prevBtnClass).closest('.' + $this.set.paging.contClass).addClass($this.set.disabledClass);
 				}
 
 			} else {
+				//This is for show all.
 				$this.set.pages = 1;
+				//Hide next and prev
+				$this.find('.' + $this.set.paging.nextBtnClass + ',' + '.' + $this.set.paging.prevBtnClass).addClass($this.set.disabledClass);
 			}
 
 			//Return data for paging.
@@ -1161,15 +1169,15 @@
 			}
 			
 			//Replace all hashes
-            if($this.set.appendHashValue == undefined || $this.set.appendHashValue) {
-                hash = $this.set.currentHash.indexOf('#') === -1 ? '#' + $this.set.currentHash : $this.set.currentHash;
-                $this.find('#' + $this.set.itemContId + ' a').each(function() {
-                    var href = $(this).attr('href');
+			if($this.set.appendHashValue === undefined || $this.set.appendHashValue) {
+				hash = $this.set.currentHash.indexOf('#') === -1 ? '#' + $this.set.currentHash : $this.set.currentHash;
+				$this.find('#' + $this.set.itemContId + ' a').each(function() {
+					var href = $(this).attr('href');
 
-                    if(href.indexOf('#') !== -1) href = href.substring(0, href.indexOf('#'));
-                    $(this).attr('href', href + hash);
-                });
-            }
+					if(href.indexOf('#') !== -1) href = href.substring(0, href.indexOf('#'));
+					$(this).attr('href', href + hash);
+				});
+			}
 			
 			$this.set.initialLoad = false;
 			//Callback for when items have finished rendering.
@@ -1655,7 +1663,7 @@
 			//If method is an "object" (can also be an array) or no arguments passed to the function.
 			return methods.init.apply(this, arguments);
 		} else {
-			$.error('Method ' +  method + ' does not exist on jQuery.ysFilter');
+			$.error('Method ' + method + ' does not exist on jQuery.ysFilter');
 		}
 
 	};
