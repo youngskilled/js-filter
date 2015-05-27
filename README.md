@@ -280,6 +280,9 @@ Numerous classes can be reassigned. Check the `defaultOpts {}` as to which class
 
 ### Changelog ###
 
+**Version 0.2.9**
+Updated pagination to work in the same way that the master branch works for simplicity sake. Fixed a few linting issues.
+
 **Version 0.2.8**
 Added non-minified version of plugin to the dist folder and edited the dependency version of jQuery.
 
