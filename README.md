@@ -280,8 +280,11 @@ Numerous classes can be reassigned. Check the `defaultOpts {}` as to which class
 
 ### Changelog ###
 
-**Version 0.2.7** 
+**Version 0.2.8**
 Added non-minified version of plugin to the dist folder and edited the dependency version of jQuery.
+
+**Version 0.2.7** 
+Added click event when using type=checkboxes in .filter-group.
 
 **Version 0.2.6** 
 Tidied up several issues. All product URL's hashes are updated on filter change. Price is now sorted with sale prices also. Fixed issues on first load of products.

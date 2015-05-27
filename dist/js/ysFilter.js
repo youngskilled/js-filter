@@ -259,6 +259,19 @@
 					priv.updateFilter.apply($this, [type, cat, val]);
 				}
 			});
+			
+			$this.on('click', '.filter-group input[type=checkbox].filter-value', function(e) {
+				var type = $(this).closest('.filter-group').data('type'),
+					cat = $(this).closest('.filter-group').attr('id'),
+					val = $(this).val();
+				
+				if(cat !== 'sort') $this.set.latestCat = cat;
+
+				if(!$(this).hasClass('disabled')) {
+					$(this).toggleClass($this.set.filterSelectedClass);
+					priv.updateFilter.apply($this, [type, cat, val]);
+				}
+			});
 
 			$this.on('click', '.remove', function(e) {
 				e.preventDefault();
