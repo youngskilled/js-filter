@@ -280,6 +280,9 @@ Numerous classes can be reassigned. Check the `defaultOpts {}` as to which class
 
 ### Changelog ###
 
+**Version 0.2.10**
+Added a new check for sale products to ensure correct price sorting.
+
 **Version 0.2.9**
 Updated pagination to work in the same way that the master branch works for simplicity sake. Fixed a few linting issues.
 

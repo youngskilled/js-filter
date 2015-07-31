@@ -610,6 +610,7 @@
 				if(sortBy === 'price') {
 					price = items[i].price;
 					if(price.indexOf('sale') !== -1) price = price.substring(price.indexOf('sale'));
+					if(price.indexOf('newprice') !== -1) price = price.substring(price.indexOf('newprice'));
 					price = parseInt(price.replace(/^\D+|&#160;|\D+$/g, ''), 10);
 					if(isNaN(price)) price = 99999999;
 					sortArr[i][sortBy] = price;
