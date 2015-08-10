@@ -367,6 +367,9 @@ Category URI. Everything after the root and no slash is needed in the beginning.
 
 ## Changelog ##
 
+**Version 1.2.0** 
+Possible minor breaking change. Filter descriptions were using keys instead of displaying values not sure why this was the case may just have been a bug.
+
 **Version 1.1.5** 
 Changes to how pagination works. Traditional paged views now working correctly. Support before for only appended items. Individual page navigation is now independently set instead of paging parent class.
 

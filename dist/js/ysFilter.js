@@ -194,9 +194,7 @@
 					desc = underCat;
 
 					if($this.filter.filterDescriptions[cat] !== undefined && $this.filter.filterDescriptions[cat][underCat] !== undefined) {
-						if(typeof $this.filter.filterDescriptions[cat][underCat] === 'object') {
-							desc = $this.filter.filterDescriptions[cat][underCat];
-						}
+						desc = $this.filter.filterDescriptions[cat][underCat];
 					}
 
 					if(typeof desc !== 'object' && desc.indexOf('::') !== -1 || cat === 'categories') {
