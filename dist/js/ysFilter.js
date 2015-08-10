@@ -585,10 +585,9 @@
 			var currentScroll = 0;
 
 			if(type === 's1' || type === 's') {
-				//Select One
-				checkVal = typeof val === 'object' ? val.join(',') : val;
+				//Select OnecheckVal = typeof val === 'object' ? val.join(',') : val;
 				currVal = $this.set.filteredBy[cat] !== undefined ? (typeof $this.set.filteredBy[cat].value === 'object') ? $this.set.filteredBy[cat].value.join(',') : $this.set.filteredBy[cat].value : '';
-				if(currVal === checkVal || checkVal === 0 || checkVal === '0' || checkVal === 'remove') {
+				if(currVal === checkVal || checkVal === 'remove') {
 					delete $this.set.filteredBy[cat];
 					priv.reSelectLatestFilter.apply($this);
 				} else {
@@ -618,8 +617,7 @@
 					val = val + '';
 					currVal = $this.set.filteredBy[cat] !== undefined && $this.set.filteredBy[cat].value !== undefined ? $this.set.filteredBy[cat].value : [];
 					posInArray = $.inArray(val, currVal);
-
-					if(posInArray !== -1 || val === 0 || val === '0') {
+					if(posInArray !== -1) {
 						currVal.splice(posInArray, 1);
 					} else {
 						currVal.push(val);
