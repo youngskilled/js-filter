@@ -1158,9 +1158,12 @@
 				html += priv.renderItemTemplate.apply($this, [items[i]]);
 			}
 
+
 			if($this.set.appendItems && $this.set.pages !== 1 && $this.set.filteredBy.page !== 1 && $this.set.initialLoad === false) {
+				if($this.set.beforeItemsRendered !== undefined) $this.set.beforeItemsRendered('append');
 				$this.find('#' + $this.set.itemContId).append(html);
 			} else {
+				if($this.set.beforeItemsRendered !== undefined) $this.set.beforeItemsRendered('replace');
 				$this.find('#' + $this.set.itemContId).html(html);
 			}
 			

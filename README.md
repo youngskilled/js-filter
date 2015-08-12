@@ -193,6 +193,19 @@ Create a callback to allow extra functionality after filters are built.
 		//Do something now. (uniform, chosen)
 	}})
 
+#### beforeItemsRendered ####
+
+*Expects* `function(type)`  
+*Since* `1.3.1`
+
+Good for removing elements before filtering.
+One variable is passed of type string defining a complete replace or an append.
+
+	$(selector).ysFilter({beforeItemsRendered: function(type) {
+		//Do something before products are loaded.
+		if(type === 'replace') ...
+	}})
+
 #### afterItemsRendered ####
 
 *Expects* `function()`
@@ -366,6 +379,9 @@ Category URI. Everything after the root and no slash is needed in the beginning.
 
 
 ## Changelog ##
+
+**Version 1.3.1** 
+Added a new method `beforeItemsRendered` for listening to before the page is to be re-rendered.
 
 **Version 1.3.0** 
 Possible minor breaking change. Filter descriptions were using keys instead of displaying values not sure why this was the case may just have been a bug.
