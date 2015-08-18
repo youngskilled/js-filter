@@ -218,12 +218,14 @@ Using several images on product listing for roll overs etc.
 
 #### onFilterChanged ####
 
-*Expects* `function()`
+*Expects* `function(filterObj)`
+*Updated* `1.3.2`
 
-Callback to update filter styles manually after changes.
+Callback to update filter styles manually after changes. Filter object sent as a variable.
 
-	$(selector).ysFilter({onFilterChanged: function() {
+	$(selector).ysFilter({onFilterChanged: function(filterObj) {
 		//Do something after filtering is finished.
+		for(var filter in filterObj) { ... }
 	}})
 
 #### classProductNew, classProductSale ####
@@ -379,6 +381,9 @@ Category URI. Everything after the root and no slash is needed in the beginning.
 
 
 ## Changelog ##
+
+**Version 1.3.2** 
+Added a an argument to `onFilterChanged`. Object of all the various filters running.
 
 **Version 1.3.1** 
 Added a new method `beforeItemsRendered` for listening to before the page is to be re-rendered.
