@@ -1492,7 +1492,6 @@
 			var filters = str.substring(1).split('&');
 			var tmpArr = [];
 			var type = '';
-			var firstFilter = true;
 			var value = [];
 
 			if(str.length > 1 && str.indexOf('/') !== 1) {
@@ -1516,10 +1515,7 @@
 								value = tmpArr[1];
 								break;
 						}
-						if(firstFilter && type[0] !== 'sort') {
-							firstFilter = false;
-							$this.set.latestCat = type[0];
-						}
+						if(type[0] !== 'sort') $this.set.latestCat = type[0];
 						obj[type[0]] = {type: type[1], value: value};
 					}
 				}
