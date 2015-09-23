@@ -382,6 +382,9 @@ Category URI. Everything after the root and no slash is needed in the beginning.
 
 ## Changelog ##
 
+**Version 1.3.4** 
+Added a new class for retrieving and updating total products.
+
 **Version 1.3.3** 
 Bug fix. Latest filter now correctly selects the latest filter in object based on hash.
 

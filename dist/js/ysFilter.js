@@ -1148,6 +1148,7 @@
 			//Return data for paging.
 			$this.find('.' + $this.set.pageTotalClass).text($this.set.pages);
 			$this.find('.' + $this.set.itemTotalClass).text(items.length);
+			$this.find('.' + $this.set.allItemsTotalClass).text($this.set.currentItems.length);
 			$this.find('.' + $this.set.currentTotalClass).text(len);
 
 			for (var i = start; i < len; i++) {
@@ -1631,6 +1632,7 @@
 		pageTotalClass: 'js-pages-total',
 		pageCurrentClass: 'js-pages-current',
 		itemTotalClass: 'js-items-total',
+		allItemsTotalClass: 'js-allItems-total',
 		currentTotalClass: 'js-items-current'
 	};
 
