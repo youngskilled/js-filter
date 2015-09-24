@@ -343,6 +343,36 @@
 		},
 		enableEvents: function() {
 			var $this = this;
+			var touchStart = null;
+			var touchClick = null;
+			var winTouches = {
+				move: false
+			};
+
+			touchClick = function() {
+				if(winTouches.moved) return false;
+				return (Math.abs(Math.abs(winTouches.startX) - Math.abs(winTouches.endX))) < 50 && (Math.abs(Math.abs(winTouches.startY) - Math.abs(winTouches.endY))) < 50;
+			};
+
+			//logging all touches on screen.
+			$(window).on({
+				touchstart: function(e) {
+					$this.set.touch = true;
+					winTouches.startX = e.originalEvent.targetTouches[0].clientX;
+					winTouches.startY = e.originalEvent.targetTouches[0].clientY;
+					winTouches.endX = e.originalEvent.targetTouches[0].clientX;
+					winTouches.endY = e.originalEvent.targetTouches[0].clientY;
+					winTouches.moved = false;
+				},
+				touchmove: function(e) {
+					winTouches.endX = e.originalEvent.targetTouches[0].clientX;
+					winTouches.endY = e.originalEvent.targetTouches[0].clientY;
+					if(!touchClick()) {
+						//You have moved away but you might move back.
+						winTouches.moved = true;
+					}
+				}
+			});
 
 			//FILTERING
 			//----------
@@ -357,8 +387,9 @@
 				priv.updateFilterObj.apply($this, [type, cat, val]);
 			});
 
-			$this.on('click', '.' + $this.set.groupClass + ' a.filterControls-value', function(e) {
+			$this.on('click touchend', '.' + $this.set.groupClass + ' a.filterControls-value', function(e) {
 				e.preventDefault();
+				if($this.set.touch === true && touchClick() === false) return;
 				var type = $(this).closest('.' + $this.set.groupClass).data('type');
 				var cat = $(this).closest('.' + $this.set.groupClass).attr('id');
 				var val = $(this).data('value');
@@ -380,8 +411,9 @@
 				}
 			});
 
-			$this.on('click', '.js-removeElement', function(e) {
+			$this.on('click touchend', '.js-removeElement', function(e) {
 				e.preventDefault();
+				if($this.set.touch === true && touchClick() === false) return;
 				//Remove specific element from filters
 				//Relies upon data object matching element to remove
 				var data = $(this).find('a').data();
@@ -398,8 +430,9 @@
 				priv.updateFilterObj.apply($this, [type, cat, val]);
 			});
 
-			$this.on('click', '.js-remove', function(e) {
+			$this.on('click touchend', '.js-remove', function(e) {
 				e.preventDefault();
+				if($this.set.touch === true && touchClick() === false) return;
 				//Remove all from group
 				var $group = $(this).closest('.' + $this.set.groupClass);
 				var type;
@@ -417,8 +450,9 @@
 				priv.updateFilterObj.apply($this, [type, cat, val]);
 			});
 
-			$this.on('click', '.js-removeAll', function(e) {
+			$this.on('click touchend', '.js-removeAll', function(e) {
 				e.preventDefault();
+				if($this.set.touch === true && touchClick() === false) return;
 				var currentScroll = $(window).scrollTop();
 				//Remove all filters
 				$this.set.filteredBy = {};
@@ -444,8 +478,9 @@
 
 			//PAGING
 			//----------
-			$this.on('click', '.' + $this.set.paging.nextBtnClass, function(e) {
+			$this.on('click touchend', '.' + $this.set.paging.nextBtnClass, function(e) {
 				e.preventDefault();
+				if($this.set.touch === true && touchClick() === false) return;
 				//Next Page
 				if($this.set.filteredBy.page < $this.set.pages) {
 					$this.set.filteredBy.page += 1;
@@ -457,8 +492,9 @@
 				return false;
 			});
 
-			$this.on('click', '.' + $this.set.paging.prevBtnClass, function(e) {
+			$this.on('click touchend', '.' + $this.set.paging.prevBtnClass, function(e) {
 				e.preventDefault();
+				if($this.set.touch === true && touchClick() === false) return;
 				var currentScroll = $(window).scrollTop();
 				//Prev Page
 				if($this.set.filteredBy.page > 1) {
@@ -471,8 +507,9 @@
 				}
 			});
 
-			$this.on('click', '.' + $this.set.paging.allBtnClass, function(e) {
+			$this.on('click touchend', '.' + $this.set.paging.allBtnClass, function(e) {
 				e.preventDefault();
+				if($this.set.touch === true && touchClick() === false) return;
 				var $paging = $(this).closest('.' + $this.set.paging.contClass);
 				//Prev Page
 				if($paging.hasClass('viewing-all')) {

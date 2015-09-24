@@ -382,6 +382,9 @@ Category URI. Everything after the root and no slash is needed in the beginning.
 
 ## Changelog ##
 
+**Version 1.4.0** 
+Added touchevents to more quickly read variables from filters. Updated mainly due to changes in rekaf.
+
 **Version 1.3.4** 
 Added a new class for retrieving and updating total products.
 
