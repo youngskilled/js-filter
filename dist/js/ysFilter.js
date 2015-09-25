@@ -915,8 +915,8 @@
 				for (i = 0; i < paramTypes.length; i++) {
 					//Don't change the category we're in.
 					//If only one filter is chosen, remove disabled on that one remove latestCat
-					//Previous filter.
-					if($this.set.latestCat === paramTypes[i][0]) {
+					//Previous filter if sor use only for first filter.
+					if((type === 's1' && $this.set.latestCat === paramTypes[i][0]) || (type === 'sor' && filters === 1 && $this.set.latestCat === paramTypes[i][0])) {
 						if($this.set.resetLatestCat) {
 							$('#' + $this.set.latestCat).find('.' + $this.set.disabledClass).removeClass($this.set.disabledClass);
 							$('#' + $this.set.latestCat).find('option').removeAttr('disabled');
