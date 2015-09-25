@@ -767,11 +767,10 @@
 			if($this.set.onFilterChanged !== undefined) $this.set.onFilterChanged($this.set.filteredBy);
 
 		},
-		gatherItems: function() {
+		gatherItems: function(shouldReturn, filteredBy) {
 			//Collect all items to be printed out based on filter.
 			var $this = this;
 			var catRegexp = /_\d$/;
-			var filteredBy = $this.set.filteredBy;
 			var totalItems = $this.set.relevantFilters || $this.filter.filter;
 			var filters = 0;
 			var i = 0;
@@ -780,6 +779,9 @@
 			var newItems = [];
 			var renderItems = [];
 			var filteredByReverse = [];
+
+			filteredBy = filteredBy || $this.set.filteredBy;
+			shouldReturn = shouldReturn || false; 
 
 			//Category levels.
 			var matchUri = function(filter, value) {
@@ -849,13 +851,17 @@
 				filters++;
 			}
 
-			if(filters > 0) {
-				$this.addClass('ysFilter--filtered');
-			} else {
-				$this.removeClass('ysFilter--filtered');
-			}
+			if(!shouldReturn) {
+				if(filters > 0) {
+					$this.addClass('ysFilter--filtered');
+				} else {
+					$this.removeClass('ysFilter--filtered');
+				}
 
-			priv.updateFilterHTML.apply($this, [filters, renderItems, totalItems]);
+				priv.updateFilterHTML.apply($this, [filters, renderItems, totalItems]);
+			} else {
+				return renderItems;
+			}
 
 		},
 		updateFilterHTML: function(filters, renderItems, totalItems) {
@@ -868,12 +874,16 @@
 			var catId;
 			var itemTotal;
 			var create;
+			var type;
 			var maxLength;
 			var prop;
 			var compiledObj;
 			var updateFilterObj;
 			var depth;
 			var subCat;
+			var tempRenderItems;
+			var tempFilterObj;
+
 			if(filters === 0) {
 				//Same here if the intersect returns nothing.
 				//Clone filter items to return everything back to original state.
@@ -919,13 +929,15 @@
 					catId = paramTypes[i][0].replace(/_\d$/, '');
 					itemTotal = 0;
 					$filter = $this.find('#' + paramTypes[i][0]);
+					type = $filter.data('type') || null;
 					create = $filter.data('create') || null;
 					maxLength = $filter.data('max-length') || null;
+					depth = ($filter.data('depth') - 1) || null;
 					prop = '';
 					compiledObj = {};
 					updateFilterObj = totalItems[catId];
-					depth = ($filter.data('depth') - 1) || null;
 					intersected = [];
+					tempRenderItems = renderItems.slice();
 
 					if(depth !== null) {
 
@@ -945,10 +957,27 @@
 
 					}
 
+					//We're effectively not counting any of the filters from the same category that we are in.
+					//If you filter one thing with categories then obviously that will make the other categories unselectable. 
+						//Unless products appear in more than one category.
+					//But based on all the other filters not the one that is currently selected are there other categories that can be still added?
+
+					//Choice has been filtered with but is not the latest chosen filter.
+					if($this.set.filteredBy[paramTypes[i][0]] !== undefined && type === 'sor') {
+						//Re-gather items excluding currently filtered category.
+						tempFilterObj = $.extend(true, {}, $this.set.filteredBy);
+						delete tempFilterObj[paramTypes[i][0]];
+						newGatheredItems = priv.gatherItems.apply($this, [true, tempFilterObj]);
+
+						//We want to temporarily include all items based on the other filters in this section to renderItems.
+						tempRenderItems = Array.prototype.concat.apply(tempRenderItems, newGatheredItems);
+						tempRenderItems = priv.unique(tempRenderItems);
+					}
+
 					for(subCat in updateFilterObj) {
 
 						var id = subCat.replace(/\W/g, '-');
-						intersected = priv.intersect(renderItems, updateFilterObj[subCat]);
+						intersected = priv.intersect(tempRenderItems, updateFilterObj[subCat]);
 
 						//Do these sub categories have any of our items?
 						$item = $this.find('#' + paramTypes[i][0] + '-' + id);

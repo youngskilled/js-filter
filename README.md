@@ -382,6 +382,11 @@ Category URI. Everything after the root and no slash is needed in the beginning.
 
 ## Changelog ##
 
+**Version 1.5.0** 
+Changed how the filter options display disabled or not. If a filter has options that are multiple choice then the filter will be based on the other options and not the option currently being chosen it will give a list of other filterable values to filter with.
+i.e. Category -> Backpacks and Accessories are chosen. The user then chooses brown. Previously it was not possible to then add more categories but now all other categories that have something brown in them will be available.
+Be aware of the value that can be disabled and selected at the same time I suggest using strikethrough for communication purposes that the option you previously chose is now longer valid but still chosen.
+
 **Version 1.4.0** 
 Added touchevents to more quickly read variables from filters. Updated mainly due to changes in rekaf.
 
