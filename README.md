@@ -382,6 +382,9 @@ Category URI. Everything after the root and no slash is needed in the beginning.
 
 ## Changelog ##
 
+**Version 1.5.2** 
+Made the matching of categories exact from ^category to ^category$ reducing the number of duplicate items as all items are in containing categories.
+
 **Version 1.5.1** 
 Tweak to resetting filters properly when changing between options.
 

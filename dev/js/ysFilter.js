@@ -86,7 +86,8 @@
 				totalItems = $this.filter.filter;
 
 				for(var category in categories) {
-					if(category.indexOf($this.set.category) === 0) {
+					var testCorrectCategory = new RegExp('^' + category + '$');
+					if(testCorrectCategory.test($this.set.category)) {
 						tmpArr[i] = categories[category];
 						i++;
 					}
