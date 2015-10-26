@@ -382,6 +382,9 @@ Category URI. Everything after the root and no slash is needed in the beginning.
 
 ## Changelog ##
 
+**Version 1.5.4** 
+Removed possibility for limit to be set to 0. Limit must always be explicitly set to a number higher than 0 to ensure the choice is understood.
+
 **Version 1.5.3** 
 1.5.2 was tagged incorrectly now is 1.5.3. Made the matching of categories exact from ^category to ^category$ reducing the number of duplicate items as all items are in containing categories.
 

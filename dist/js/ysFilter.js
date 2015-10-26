@@ -44,7 +44,9 @@
 					priv.enableEvents.apply($this);
 
 					//Set some global variables.
-					$this.set.limit = $this.filter.settings.limit;
+					if($this.filter.settings.limit > 0) {
+						$this.set.limit = $this.filter.settings.limit;
+					}
 					$this.set.pages = Math.ceil($this.set.initItems.length / $this.set.limit);
 
 					priv.updateFilterObjFromHash({data:{this:$this,init:true}});
