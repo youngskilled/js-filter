@@ -919,6 +919,9 @@
 					//Don't change the category we're in.
 					//If only one filter is chosen, remove disabled on that one remove latestCat
 					//Previous filter if sor use only for first filter.
+					$filter = $this.find('#' + paramTypes[i][0]);
+					type = $filter.data('type') || null;
+					
 					if((type === 's1' && $this.set.latestCat === paramTypes[i][0]) || (type === 'sor' && filters === 1 && $this.set.latestCat === paramTypes[i][0])) {
 						if($this.set.resetLatestCat) {
 							$('#' + $this.set.latestCat).find('.' + $this.set.disabledClass).removeClass($this.set.disabledClass);
@@ -931,8 +934,6 @@
 					catTotal = 0;
 					catId = paramTypes[i][0].replace(/_\d$/, '');
 					itemTotal = 0;
-					$filter = $this.find('#' + paramTypes[i][0]);
-					type = $filter.data('type') || null;
 					create = $filter.data('create') || null;
 					maxLength = $filter.data('max-length') || null;
 					depth = ($filter.data('depth') - 1) || null;

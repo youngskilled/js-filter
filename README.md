@@ -382,6 +382,9 @@ Category URI. Everything after the root and no slash is needed in the beginning.
 
 ## Changelog ##
 
+**Version 1.5.5** 
+Fixed bug clearing disabled's on first filter choice.
+
 **Version 1.5.4** 
 Removed possibility for limit to be set to 0. Limit must always be explicitly set to a number higher than 0 to ensure the choice is understood.
 
