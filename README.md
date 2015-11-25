@@ -280,6 +280,9 @@ Numerous classes can be reassigned. Check the `defaultOpts {}` as to which class
 
 ### Changelog ###
 
+**Version 0.2.11**
+Use {top_category_uri} to get deeper links for products. Filter was limited to 2 levels of category rendering previously now a third is added. Categories are connected back to front.
+
 **Version 0.2.10**
 Added a new check for sale products to ensure correct price sorting.
 

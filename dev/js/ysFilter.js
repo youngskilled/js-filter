@@ -792,6 +792,7 @@
 
 			//Split URI's if needed
 			obj.category_uri = (obj.category_uri === null) ? '' : (obj.category_uri.indexOf(':') !== -1) ? obj.category_uri.slice(0,obj.category_uri.indexOf(':')) : obj.category_uri;
+			obj.top_category_uri = (obj.top_category_uri === null) ? '' : (obj.top_category_uri.indexOf(':') !== -1) ? '/' + obj.top_category_uri.slice(0, obj.top_category_uri.indexOf(':')) : '/' + obj.top_category_uri;
 			root = (obj.root_uri === null || obj.root_uri === '') ? '' : (obj.root_uri.indexOf(':') !== -1) ? ROOT + obj.root_uri.slice(0,obj.root_uri.indexOf(':')) : ROOT + obj.root_uri;
 			
 			if(template.indexOf('{rep_') !== -1) {
