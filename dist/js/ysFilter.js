@@ -1406,7 +1406,7 @@
 
 					if(obj[attribute] !== null && typeof obj[attribute] === 'object') {
 						if(obj[attribute].desc !== undefined) {
-							str = priv.hexOrImage(obj[attribute], attributeType, $this.set.forceHex);
+							str = priv.hexOrImage(obj[attribute], attributeType, $this.set.forceHex, $this.set.swatchClass);
 						}
 					}
 
@@ -1435,18 +1435,18 @@
 			return itemTemplate;
 
 		},
-		hexOrImage: function(obj, type, forceHex) {
+		hexOrImage: function(obj, type, forceHex, swatchClass) {
 			var str = '';
 
 			if(obj.image !== undefined && obj.image.url !== undefined && !forceHex) {
 				if(type === 'style') {
-					str = '<span class="colorList-color" style="background-image: url(' + obj.image.url + ');"></span>';
+					str = '<span class="' + swatchClass + '" style="background-image: url(' + obj.image.url + ');"></span>';
 				} else {
 					str = obj.image.url;
 				}
 			} else if(obj.hex !== undefined) {
 				obj.hex.replace(/#?([a-f,0-9]{3,6})/ig, function(value, text) {
-					str += '<span class="colorList-color" style="background-color: #' + text + ';"></span>';
+					str += '<span class="' + swatchClass + '" style="background-color: #' + text + ';"></span>';
 				});
 			}
 
@@ -1703,7 +1703,8 @@
 		pageCurrentClass: 'js-pages-current',
 		itemTotalClass: 'js-items-total',
 		allItemsTotalClass: 'js-allItems-total',
-		currentTotalClass: 'js-items-current'
+		currentTotalClass: 'js-items-current',
+		swatchClass: 'colorList-color'
 	};
 
 	var privateOpts = {

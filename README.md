@@ -382,6 +382,9 @@ Category URI. Everything after the root and no slash is needed in the beginning.
 
 ## Changelog ##
 
+**Version 1.5.6** 
+Added a new class to control swatches.
+
 **Version 1.5.5** 
 Fixed bug clearing disabled's on first filter choice.
 
