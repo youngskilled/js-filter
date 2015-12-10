@@ -42,7 +42,7 @@
 						priv.gatherItems.apply($this);
 						priv.reSelect.apply($this);
 					} else {
-						//We clone the array objects in the array however keep references. 
+						//We clone the array objects in the array however keep references.
 						//Now we can sort the array without screwing original order.
 						$this.set.currentItems = $this.filter.items.slice(0);
 						//Replace even on first load if debug: true
@@ -60,7 +60,8 @@
 				create = '',
 				tplAdditions = {},
 				len = $this.filter.desc.param_types.length,
-				splitSizeEnd = $this.set.splitSizes !== false ? '</' + $this.set.splitSizes.match(/<([a-z]+)/)[1] + '>' : '';
+				splitSizeEnd = $this.set.splitSizes !== false ? '</' + $this.set.splitSizes.match(/<([a-z]+)/)[1] + '>' : '',
+				splitSizeStart = $this.set.splitSizes !== false ? $this.set.splitSizes : '';
 
 
 			//Sort ends up in a different part of the filter attrs. Needs to be looped through seperately.
@@ -96,16 +97,19 @@
 					desc = '',
 					whichGroup = null,
 					currGroup = null,
-					treeParts = [];
-				
+					treeParts = [],
+					prevChart = '',
+					chart = '';
+
 				html = '';
 				create = $filter.data('create');
 				tplAdditions = $this.set.filterOptions[cat] || {};
 
 				for (var underCat in $this.filter.desc[cat]) {
-					
+
 					desc = $this.filter.desc[cat][underCat].name;
-					
+					chart = $this.filter.desc[cat][underCat].chart !== undefined ? $this.filter.desc[cat][underCat].chart : '';
+
 					if($this.filter.desc[cat][underCat].data) {
 						if($this.filter.desc[cat][underCat].data.color !== '') {
 							desc = [desc, $this.filter.desc[cat][underCat].data.color];
@@ -113,7 +117,7 @@
 							desc = [desc, $this.filter.desc[cat][underCat].data.hex];
 						}
 					}
-					
+
 					if(desc.indexOf('###') !== -1) {
 						//Handling of tree categories.
 						whichGroup = 'tree';
@@ -134,9 +138,11 @@
 						sizeTables = underCat.split('_');
 						if(currGroup !== sizeTables[0]) {
 							if(currGroup !== null) {
-								html += $this.set.splitSizes + subHtml + splitSizeEnd;
+								if(chart !== '') splitSizeStart = $this.set.splitSizes.replace('{chart}', prevChart);
+								html += splitSizeStart + subHtml + splitSizeEnd;
 								subHtml = '';
 							}
+							prevChart = chart;
 							currGroup = sizeTables[0];
 						}
 						subHtml += priv.buildFilterTemplate.call($this, create, cat + '-' + underCat, underCat, desc, tplAdditions);
@@ -150,7 +156,8 @@
 					if(whichGroup === 'tree') {
 						html += priv.buildFilterTemplate.call($this, 'group_' + create, '', subHtml, currGroup, tplAdditions);
 					} else {
-						html += $this.set.splitSizes + subHtml + splitSizeEnd;
+						if(chart !== '') splitSizeStart = $this.set.splitSizes.replace('{chart}', prevChart);
+						html += splitSizeStart + subHtml + splitSizeEnd;
 					}
 				}
 				if(tplAdditions.wrapperGroup !== undefined) html = tplAdditions.wrapperGroup + html + '</' + tplAdditions.wrapperGroup.match(/<([a-z]+)/)[1] + '>';
@@ -164,7 +171,7 @@
 
 			//Filter is loaded and ready to use.
 			$this.removeClass('ysFilter-loading ysFilter-filtered').addClass('ysFilter-loaded');
-			
+
 			//Trigger callback for added functionality
 			if($this.set.afterFilterRendered !== undefined) {
 				$this.set.afterFilterRendered();
@@ -238,7 +245,7 @@
 				var type = $(this).closest('.filter-group').data('type'),
 					cat = $(this).closest('.filter-group').attr('id'),
 					val = $(this).val();
-				
+
 				if(cat !== 'sort') $this.set.latestCat = cat;
 
 				priv.updateFilter.apply($this, [type, cat, val]);
@@ -249,7 +256,7 @@
 				var type = $(this).closest('.filter-group').data('type'),
 					cat = $(this).closest('.filter-group').attr('id'),
 					val = $(this).data('value');
-				
+
 				if(cat !== 'sort') $this.set.latestCat = cat;
 
 				if(!$(this).hasClass('disabled')) {
@@ -257,12 +264,12 @@
 					priv.updateFilter.apply($this, [type, cat, val]);
 				}
 			});
-			
+
 			$this.on('click', '.filter-group input[type=checkbox].filter-value', function(e) {
 				var type = $(this).closest('.filter-group').data('type'),
 					cat = $(this).closest('.filter-group').attr('id'),
 					val = $(this).val();
-				
+
 				if(cat !== 'sort') $this.set.latestCat = cat;
 
 				if(!$(this).hasClass('disabled')) {
@@ -278,7 +285,7 @@
 					type,
 					cat,
 					val;
-				
+
 				if($group.length === 0) $group = $(this).siblings('.filter-group');
 
 				type = $group.data('type');
@@ -416,15 +423,15 @@
 
 			//Filter has changed reset to page 1
 			$this.set.filteredBy.page = 1;
-			
+
 			//Update Hash - hashify object
 			$this.set.currentHash = priv.hashify($this.set.filteredBy);
 			window.location.hash = $this.set.currentHash;
 
 			//Gather items from each filter.
 			priv.gatherItems.apply($this);
-			
-			//Filter items have changed do callback. 
+
+			//Filter items have changed do callback.
 			if($this.set.onFilterChanged !== undefined) $this.set.onFilterChanged();
 
 
@@ -473,7 +480,7 @@
 				}
 			}
 
-			//Filter items have changed do callback. 
+			//Filter items have changed do callback.
 			if($this.set.onFilterChanged !== undefined) $this.set.onFilterChanged();
 
 		},
@@ -734,7 +741,7 @@
 			}
 
 			$this.set.initialLoad = false;
-			
+
 			//Replace all hashes
 			hash = $this.set.currentHash.indexOf('#') === -1 ? '#' + $this.set.currentHash : $this.set.currentHash;
 			$this.find('#' + $this.set.itemContId + ' a').each(function() {
@@ -760,7 +767,7 @@
 				varArr = [],
 				root = '',
 				len = images.length;
-			
+
 			if($this.set.debug === true && typeof images !== 'object') { console.warn('You should be using the latest version of the JSFilter class. Incl in v2'); }
 
 			if(variations !== false) {
@@ -769,7 +776,7 @@
 					varArr[i] = variations[i].id;
 				}
 
-				//Use only main product array / first in varArr 
+				//Use only main product array / first in varArr
 				if(obj.image[varArr[0]]) {
 					images = obj.image[varArr[0]];
 				} else if(obj.image[0]) {
@@ -780,7 +787,7 @@
 
 			} else {
 				images = obj.image[0];
-				
+
 				if(typeof obj.image == 'object' && images === undefined) {
 					for(var imageArr in obj.image) {
 						images = obj.image[imageArr];
@@ -794,7 +801,7 @@
 			obj.category_uri = (obj.category_uri === null) ? '' : (obj.category_uri.indexOf(':') !== -1) ? obj.category_uri.slice(0,obj.category_uri.indexOf(':')) : obj.category_uri;
 			obj.top_category_uri = (obj.top_category_uri === null) ? '' : (obj.top_category_uri.indexOf(':') !== -1) ? '/' + obj.top_category_uri.slice(0, obj.top_category_uri.indexOf(':')) : '/' + obj.top_category_uri;
 			root = (obj.root_uri === null || obj.root_uri === '') ? '' : (obj.root_uri.indexOf(':') !== -1) ? ROOT + obj.root_uri.slice(0,obj.root_uri.indexOf(':')) : ROOT + obj.root_uri;
-			
+
 			if(template.indexOf('{rep_') !== -1) {
 				template = template.replace(/<[^<]*(\{rep_(.+?)\})[^>]*>/g, function(value, sel, text) {
 					var str = '',
@@ -880,7 +887,7 @@
 				type = '',
 				firstFilter = true,
 				value = null;
-				
+
 			if(str.length > 1) {
 				for (var i = 0; i < filters.length; i++) {
 					tmpArr = filters[i].split('=');
@@ -910,7 +917,7 @@
 					}
 				}
 			}
-			
+
 			//Set page number if not set.
 			if(obj.page === undefined) obj.page = 1;
 
@@ -955,7 +962,7 @@
 		init: function(options) {
 
 			var init = $.extend({}, defaultOpts, options);
-			
+
 			window.requestAnimFrame = (function() { return window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.oRequestAnimationFrame || window.msRequestAnimationFrame || function(callback) { window.setTimeout(callback, 1000 / 60); }; })();
 
 			return this.each(function() {

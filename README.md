@@ -280,6 +280,9 @@ Numerous classes can be reassigned. Check the `defaultOpts {}` as to which class
 
 ### Changelog ###
 
+**Version 0.2.12**
+Now possible to add {chart} to size wrapper to get the names of the size charts when using JSParamSizeChart.
+
 **Version 0.2.11**
 Use {top_category_uri} to get deeper links for products. Filter was limited to 2 levels of category rendering previously now a third is added. Categories are connected back to front.
 
