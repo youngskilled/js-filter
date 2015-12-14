@@ -280,6 +280,9 @@ Numerous classes can be reassigned. Check the `defaultOpts {}` as to which class
 
 ### Changelog ###
 
+**Version 0.2.13**
+Minor fix to the top_category_uri variable. Now checks if it is present.
+
 **Version 0.2.12**
 Now possible to add {chart} to size wrapper to get the names of the size charts when using JSParamSizeChart.
 
