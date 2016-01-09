@@ -141,6 +141,7 @@
 			var	html = '';
 			var	create = '';
 			var	tplAdditions = {};
+			var parentClassNames = '';
 			var	len = $this.filter.settings.filter.length;
 			var	splitSizeEnd = $this.set.splitSizes !== false ? '</' + $this.set.splitSizes.match(/<([a-z]+)/)[1] + '>' : '';
 
@@ -161,7 +162,8 @@
 				if(tplAdditions.wrapperGroup !== undefined) html = tplAdditions.wrapperGroup + html + '</' + tplAdditions.wrapperGroup.match(/<([a-z]+)/)[1] + '>';
 				if(create === 'fakeSelect') {
 					if($this.set.repeatStartFakeSelect) html = priv.buildFilterTemplate.call($this, 'start_' + create, '', '', initDesc, tplAdditions) + html;
-					html = '<div class="filterControls-value fake-select"><span class="title" data-orig-text="' + initDesc + '">' + initDesc + '</span><ul class="ul-clean fake-select-list">' + html + '</ul></div>';
+					parentClassNames = tplAdditions.parentClassNames !== undefined ? ' ' + tplAdditions.parentClassNames.join(' ') : '';
+					html = '<div class="filterControls-value fake-select' + parentClassNames + '"><span class="title" data-orig-text="' + initDesc + '">' + initDesc + '</span><ul class="ul-clean fake-select-list">' + html + '</ul></div>';
 				} else if(create === 'a') {
 
 				}
@@ -271,7 +273,8 @@
 
 				if(create === 'fakeSelect') {
 					if($this.set.repeatStartFakeSelect) subHtml = priv.buildFilterTemplate.call($this, 'start_' + create, '', underCat, catDesc, tplAdditions);
-					html = '<div class="filterControls-value fake-select"><span class="title" data-orig-text="' + catDesc + '">' + catDesc + '</span><ul class="ul-clean fake-select-list">' + subHtml + html + '</ul></div>';
+					parentClassNames = tplAdditions.parentClassNames !== undefined ? ' ' + tplAdditions.parentClassNames.join(' ') : '';
+					html = '<div class="filterControls-value fake-select' + parentClassNames + '"><span class="title" data-orig-text="' + catDesc + '">' + catDesc + '</span><ul class="ul-clean fake-select-list">' + subHtml + html + '</ul></div>';
 				}
 				if(create === 'select' || create === 'multiSelect') html = '<select name="' + cat + '" class="filterControls-value"' + (create === 'multiSelect' ? ' multiple="multiple"' : '') + '><option value="0">' + catDesc + '</option>' + html + '</select>';
 				$filter.append(html);
@@ -1156,6 +1159,7 @@
 			var range = null;
 			var start = 0;
 			var html = '';
+			var customRenderObj = [];
 
 			//Handle paging
 			if($this.set.initialLoad) {
@@ -1226,16 +1230,31 @@
 				if($this.set.eachItemAttrs) items[i] = $this.set.eachItemAttrs($this, items[i], i);
 				//Add in specific html snippets in certain places in HTML.
 				if($this.set.onItemIndex === i) html += $this.set.onItem(len);
-				html += priv.renderItemTemplate.apply($this, [items[i]]);
+				if($this.set.customRender !== undefined) {
+					customRenderObj[customRenderObj.length] = {
+						html: priv.renderItemTemplate.apply($this, [items[i]]),
+						item: items[i]
+					};
+				} else {
+					html += priv.renderItemTemplate.apply($this, [items[i]]);
+				}
 			}
 
 
 			if($this.set.appendItems && $this.set.pages !== 1 && $this.set.filteredBy.page !== 1 && $this.set.initialLoad === false) {
 				if($this.set.beforeItemsRendered !== undefined) $this.set.beforeItemsRendered('append');
-				$this.find('#' + $this.set.itemContId).append(html);
+				if($this.set.customRender !== undefined) {
+					$this.set.customRender('append', $this.filter, customRenderObj);
+				} else {
+					$this.find('#' + $this.set.itemContId).append(html);
+				}
 			} else {
 				if($this.set.beforeItemsRendered !== undefined) $this.set.beforeItemsRendered('replace');
-				$this.find('#' + $this.set.itemContId).html(html);
+				if($this.set.customRender !== undefined) {
+					$this.set.customRender('replace', $this.filter, customRenderObj);
+				} else {
+					$this.find('#' + $this.set.itemContId).html(html);
+				}
 			}
 			
 			//Replace all hashes

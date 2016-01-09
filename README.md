@@ -206,6 +206,29 @@ One variable is passed of type string defining a complete replace or an append.
 		if(type === 'replace') ...
 	}})
 
+#### customRender ####
+
+*Expects* `function(insertType, filterObj, renderArray)`  
+*Since* `1.6.0`
+
+Good for rendering complex layouts.  
+Three variables are passed through.  
+`insertType` Either `replace` or `append`.  
+`renderArray` The original filter object. Be mindful of changes to this so that you don't mutate the object.  
+`renderArray` An array of objects containing items html and their original variables.  
+
+	$(selector).ysFilter({beforeItemsRendered: function(insertType, filterObj, renderArray) {
+		for(i = 0; i < renderArray.length; i++) {
+			html += renderArray[i].html;
+		}
+
+		if(insertType === 'replace') {
+			$('#filterItems').html(html);
+		} else {
+			$('#filterItems').append(html);
+		}
+	}})
+
 #### afterItemsRendered ####
 
 *Expects* `function()`
@@ -381,6 +404,9 @@ Category URI. Everything after the root and no slash is needed in the beginning.
 
 
 ## Changelog ##
+
+**Version 1.6.0** 
+Added a new callback for custom rendering of html for difficult layouts. Added a new class to filter rendering function.
 
 **Version 1.5.6** 
 Added a new class to control swatches.
