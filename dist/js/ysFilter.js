@@ -178,6 +178,7 @@
 				var catDesc = $this.filter.settings.filter[i][1];
 				var $filter = $filters.filter('#' + catId);
 				var relevantFilters = $this.set.relevantFilters || $this.filter.filter;
+				var sortedFilters = {};
 				var type = $filter.data('type');
 				var maxLength = $filter.data('max-length') || null;
 				var numItems = 0;
@@ -195,7 +196,24 @@
 				create = $filter.data('create');
 				tplAdditions = $this.set.filterOptions[catId] || {};
 
-				for (var underCat in relevantFilters[cat]) {
+				if($this.set.sortFiltersAlphabetically) {
+					Object.keys(relevantFilters[cat])
+						.sort(function(a,b) {
+							if(a < b || b === '') return -1;
+							if(a > b) return 1;
+							return 0;
+						})
+						.forEach(function(v, i) {
+							if(sortedFilters[cat] == undefined) {
+								sortedFilters[cat] = []
+							}
+							sortedFilters[cat][v] = relevantFilters[cat][v];
+						});
+				} else {
+					sortedFilters = relevantFilters;
+				}
+
+				for (var underCat in sortedFilters[cat]) {
 					desc = underCat;
 
 					if($this.filter.filterDescriptions[cat] !== undefined && $this.filter.filterDescriptions[cat][underCat] !== undefined) {
@@ -1710,6 +1728,7 @@
 		repeatStartFakeSelect: false,
 		outputChosenFiltersId: false,
 		forceHex: false,
+		sortFiltersAlphabetically: false,
 		undefinedCat: 'Unsorted',
 		undefinedCatId: 'unsorted',
 		itemContId: 'filterItems',

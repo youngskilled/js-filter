@@ -144,6 +144,15 @@ Make the renderer use hex when rendering products and filter. Used in conjunctio
 
 	$(selector).ysFilter({forceHex: false})
 
+#### sortFiltersAlphabetically ####
+
+*Default* `false`  
+*Expects* `boolean`
+
+Sort filters/dropdowns menu to be shown in alphabetical order.
+
+	$(selector).ysFilter({sortFiltersAlphabetically: false})
+
 
 #### onItem ####
 
@@ -404,6 +413,9 @@ Category URI. Everything after the root and no slash is needed in the beginning.
 
 
 ## Changelog ##
+
+**Version 1.7.0** 
+Added option to alphabetically sort filters.
 
 **Version 1.6.0** 
 Added a new callback for custom rendering of html for difficult layouts. Added a new class to filter rendering function.
