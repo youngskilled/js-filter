@@ -414,6 +414,9 @@ Category URI. Everything after the root and no slash is needed in the beginning.
 
 ## Changelog ##
 
+**Version 1.7.1** 
+Alphabetically sort filters - excluded categories from this as that can be controlled via category sort order.
+
 **Version 1.7.0** 
 Added option to alphabetically sort filters.
 

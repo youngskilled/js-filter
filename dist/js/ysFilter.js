@@ -196,7 +196,7 @@
 				create = $filter.data('create');
 				tplAdditions = $this.set.filterOptions[catId] || {};
 
-				if($this.set.sortFiltersAlphabetically) {
+				if($this.set.sortFiltersAlphabetically && cat !== 'categories') {
 					Object.keys(relevantFilters[cat])
 						.sort(function(a,b) {
 							if(a < b || b === '') return -1;

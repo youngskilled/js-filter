@@ -1,6 +1,6 @@
 {
   "name": "ys-filter",
-  "version": "1.7.0",
+  "version": "1.7.1",
   "description": "For filtering and sorting products returned from Silk API.",
   "main": "dist/ysFilter.js",
   "authors": [
