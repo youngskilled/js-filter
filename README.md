@@ -414,6 +414,9 @@ Category URI. Everything after the root and no slash is needed in the beginning.
 
 ## Changelog ##
 
+**Version 1.8.0** 
+Added an option to remove price if price is zero.
+
 **Version 1.7.1** 
 Alphabetically sort filters - excluded categories from this as that can be controlled via category sort order.
 

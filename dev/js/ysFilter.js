@@ -204,8 +204,8 @@
 							return 0;
 						})
 						.forEach(function(v, i) {
-							if(sortedFilters[cat] == undefined) {
-								sortedFilters[cat] = []
+							if(sortedFilters[cat] === undefined) {
+								sortedFilters[cat] = [];
 							}
 							sortedFilters[cat][v] = relevantFilters[cat][v];
 						});
@@ -1382,6 +1382,10 @@
 		renderItemPrice: function(obj, priceTemplate) {
 			var $this = this;
 			var price = '';
+
+			if(typeof obj.price === 'object' && obj.price.priceAsNumber === 0 && !$this.set.showZeroPrices) {
+				return '';
+			}
 
 			//Use price template (obj.price)
 			if(typeof obj.price === 'object' && obj.price.soldout && priceTemplate.soldout) {
