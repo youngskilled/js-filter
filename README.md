@@ -280,6 +280,9 @@ Numerous classes can be reassigned. Check the `defaultOpts {}` as to which class
 
 ### Changelog ###
 
+**Version 0.2.14**
+Added events and pagination for specific page links.
+
 **Version 0.2.13**
 Minor fix to the top_category_uri variable. Now checks if it is present.
 

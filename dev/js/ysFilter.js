@@ -338,6 +338,20 @@
 				}
 			});
 
+			$this.on('click', '.' + $this.set.paging.pageBtnClass, function(e) {
+				e.preventDefault();
+
+				//Specific Page
+				if($this.set.pages > 1) {
+					$this.set.filteredBy.page = parseInt($(this).attr('href').replace('?p=', ''), 10);
+					$this.set.currentHash = priv.hashify($this.set.filteredBy);
+					window.location.hash = $this.set.currentHash;
+					$(window).scrollTop($this.offset().top);
+					$this.find('.' + $this.set.pageCurrentClass).text($this.set.filteredBy.page);
+					priv.gatherItems.apply($this);
+				}
+			});
+
 			$this.on('click', '.' + $this.set.paging.allBtnClass, function(e) {
 				e.preventDefault();
 				var $paging = $(this).closest('.' + $this.set.paging.contClass);
@@ -659,6 +673,7 @@
 				len = items.length,
 				range = null,
 				start = 0,
+				i = 0,
 				hash = '',
 				html = '';
 
@@ -722,13 +737,23 @@
 				$this.find('.' + $this.set.paging.nextBtnClass + ',' + '.' + $this.set.paging.prevBtnClass).addClass($this.set.disabledClass);
 			}
 
+			//Update pagination pages.
+			if($this.find('.' + $this.set.paging.pageBtnClass).length > 0) {
+				html = '';
+				for (i = 1; i <= $this.set.pages; i++) {
+					html += '<a class="' + $this.set.paging.pageBtnClass + ($this.set.filteredBy.page === i ? ' ' + $this.set.filterSelectedClass : '') + '" href="?p=' + i + '">0' + i + '</a>';
+				}
+				$this.find('.' + $this.set.paging.pageBtnClass).parent().html(html);
+				html = '';
+			}
+
 			$this.find('.' + $this.set.pageTotalClass).text($this.set.pages);
 			$this.find('.' + $this.set.itemTotalClass).text(items.length);
 			$this.find('.' + $this.set.currentTotalClass).text(len);
 
 			if($this.set.filteredItems) $this.set.filteredItems(items);
 
-			for (var i = start; i < len; i++) {
+			for (i = start; i < len; i++) {
 				//Chance to add more items to the object. Must also be in the template.
 				if($this.set.eachItemAttrs) items[i] = $this.set.eachItemAttrs($this, items[i], i);
 				html += priv.renderItemTemplate.apply($this, [items[i]]);
@@ -997,6 +1022,7 @@
 			contClass: 'paging',
 			nextBtnClass: 'next',
 			prevBtnClass: 'prev',
+			pageBtnClass: 'page',
 			allBtnClass: 'all'
 		},
 		updateWHash: false,
