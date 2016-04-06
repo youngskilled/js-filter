@@ -1569,6 +1569,7 @@
 
 			for (var i = 0; i < arr.length; i++) {
 				item = $this.filter.productIds[arr[i]];
+				if(item === undefined) continue;
 				newArr[i] = $this.filter.products[item];
 			}
 
