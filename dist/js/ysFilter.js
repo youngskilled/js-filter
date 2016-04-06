@@ -130,6 +130,11 @@
 				}
 			}
 
+			//Removes any issues from caching
+			for (i = 0; i < $this.set.initItems.length; i++) {
+				if($this.set.initItems[i] === undefined) $this.set.initItems.splice(i, 1);
+			}
+
 			$this.set.initItemsStr = JSON.stringify($this.set.initItems);
 			$this.set.currentItems = $this.set.initItems.slice(0);
 
