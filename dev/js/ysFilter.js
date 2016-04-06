@@ -130,11 +130,6 @@
 				}
 			}
 
-			//Removes any issues from caching
-			for (i = 0; i < $this.set.initItems.length; i++) {
-				if($this.set.initItems[i] === undefined) $this.set.initItems.splice(i, 1);
-			}
-
 			$this.set.initItemsStr = JSON.stringify($this.set.initItems);
 			$this.set.currentItems = $this.set.initItems.slice(0);
 
@@ -1570,7 +1565,7 @@
 			for (var i = 0; i < arr.length; i++) {
 				item = $this.filter.productIds[arr[i]];
 				if(item === undefined) continue;
-				newArr[i] = $this.filter.products[item];
+				newArr[newArr.length] = $this.filter.products[item];
 			}
 
 			return newArr;

@@ -414,6 +414,9 @@ Category URI. Everything after the root and no slash is needed in the beginning.
 
 ## Changelog ##
 
+**Version 1.8.4** 
+Fixed and cleaned up safeguards, remove duplication of functions.
+
 **Version 1.8.3** 
 Further safeguarding against items not properly formed by cache.
 
