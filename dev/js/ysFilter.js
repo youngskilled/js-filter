@@ -1382,22 +1382,38 @@
 		renderItemPrice: function(obj, priceTemplate) {
 			var $this = this;
 			var price = '';
+			var isPriceObject = typeof obj.price === 'object';
 
-			if(typeof obj.price === 'object' && obj.price.priceAsNumber === 0 && !$this.set.showZeroPrices) {
+			//Product has no price
+			if(isPriceObject && obj.price.priceAsNumber === 0 && !$this.set.showZeroPrices) {
 				return '';
 			}
 
 			//Use price template (obj.price)
-			if(typeof obj.price === 'object' && obj.price.soldout && priceTemplate.soldout) {
+			if(isPriceObject && obj.price.special && priceTemplate.special) {
+				//Special condition use in collaboration with eachItemAttrs
+				price = priceTemplate.special;
+
+				//Add sale or news classes
+				obj.classProductNew = obj.price.newProduct === true ? ' ' + $this.set.classProductNew : '';
+				obj.classProductSale = obj.price.showAsOnSale === true ? ' ' + $this.set.classProductSale : '';
+				
+			} else if(isPriceObject && obj.price.soldout && priceTemplate.soldout) {
+				//Product is sold out.
 				price = priceTemplate.soldout;
 			} else {
-				if(typeof obj.price === 'object' && obj.price.showAsOnSale && priceTemplate.discounted) {
+
+				if(isPriceObject && obj.price.showAsOnSale && priceTemplate.discounted) {
+					//On sale / discounted
 					price = priceTemplate.discounted;
-				} else if(typeof obj.price === 'object' && obj.price.newProduct && priceTemplate.news) {
+				} else if(isPriceObject && obj.price.newProduct && priceTemplate.news) {
+					//Is a new product
 					price = priceTemplate.news;
 				} else {
+					//Just normal
 					price = priceTemplate.default;
 				}
+
 				//Add sale or news classes
 				obj.classProductNew = obj.price.newProduct === true ? ' ' + $this.set.classProductNew : '';
 				obj.classProductSale = obj.price.showAsOnSale === true ? ' ' + $this.set.classProductSale : '';
