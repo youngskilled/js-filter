@@ -194,7 +194,7 @@
 				for (var underCat in relevantFilters[cat]) {
 					desc = underCat;
 
-					if($this.filter.filterDescriptions[cat] !== undefined && $this.filter.filterDescriptions[cat][underCat] !== undefined) {
+					if($this.filter.filterDescriptions[cat] && $this.filter.filterDescriptions[cat][underCat]) {
 						if($this.filter.filterDescriptions[cat][underCat].color_img !== undefined) {
 							desc = [desc, $this.filter.filterDescriptions[cat][underCat].color_img];
 						} else if($this.filter.filterDescriptions[cat][underCat].color_hex !== undefined) {
