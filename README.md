@@ -34,9 +34,9 @@ This is the basic page structure required for the filter to work.
 	
 	<div id="ysFilter" data-url="" data-category="">
     <div class="filterControls" data-type="">
-      <div id="color" class="filterGroup" data-type="<!-- See "Data Types" below -->" data-create="<!-- See "Data Create" below -->">
-      	<!-- HTML is appended here so it's ok to have elements here. -->
-      	<!-- Each value receives class filterControls-value -->
+      <div id="color" class="filterControls-group" data-type="<!-- See "Data Types" below -->" data-create="<!-- See "Data Create" below -->">
+        <!-- HTML is appended here so it's ok to have elements here. -->
+        <!-- Each value receives class filterControls-value -->
       </div>
       <!-- id === filterDescriptions[key] repeat above if needed -->
     </div>
