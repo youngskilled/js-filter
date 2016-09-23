@@ -11,7 +11,7 @@
 					console.log('no element with groupClass (.' + $this.set.groupClass + ') found');
 				}
 				if($this.find('#' + $this.set.itemContId).length === 0) {
-					console.log('no item containet with itemContId (#' + $this.set.itemContId + ') found');
+					console.log('no items container with itemContId (#' + $this.set.itemContId + ') found');
 				}
 			}
 
