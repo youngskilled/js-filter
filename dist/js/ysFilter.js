@@ -88,11 +88,27 @@
 				totalItems = $this.filter.filter;
 
 				for(var category in categories) {
-					var testCorrectCategory = new RegExp('^' + category + '$');
-					if(testCorrectCategory.test($this.set.category)) {
+					if($this.set.alsoMatchChildrenCategories){
+						/* Match all children categories */
+						categoryToRegexBy = $this.set.category;
+						var categoryRegex = '^' + categoryToRegexBy;
+						var categoryToTest = category;
+					} else {
+						/* Only match current category */
+						var categoryToRegexBy = category;
+						var categoryRegex = '^' + categoryToRegexBy +'$';
+						var categoryToTest = $this.set.category;
+					}
+
+					/* Add matching categories products to list of products still available to filter */
+					var testCorrectCategory = new RegExp(categoryRegex);
+					if(testCorrectCategory.test(categoryToTest)) {
+						console.log(categories[category]);
 						tmpArr[i] = categories[category];
 						i++;
 					}
+
+
 				}
 
 				//These are all the relevant items for the rest of the filtering.
@@ -1763,7 +1779,8 @@
 		itemTotalClass: 'js-items-total',
 		allItemsTotalClass: 'js-allItems-total',
 		currentTotalClass: 'js-items-current',
-		swatchClass: 'colorList-color'
+		swatchClass: 'colorList-color',
+		alsoMatchChildrenCategories: false
 	};
 
 	var privateOpts = {
