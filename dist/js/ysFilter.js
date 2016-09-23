@@ -97,15 +97,13 @@
 				paramTypes = $this.filter.settings.filter;
 				totalItems = $this.filter.filter;
 
-				var categoryRegex = '^' + $this.set.category;
+				/* Only match current category */
+				var categoryRegex = '^' + $this.set.category + '$';
 				for(var category in categories) {
 
 					if($this.set.alsoMatchChildrenCategories) {
 						/* Match all children categories */
 						categoryRegex = '^' + $this.set.category;
-					} else {
-						/* Only match current category */
-						categoryRegex = '^' + $this.set.category + '$';
 					}
 
 					/* Add matching categories products to list of products still available to filter */
