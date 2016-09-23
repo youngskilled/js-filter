@@ -152,6 +152,15 @@ Make the renderer use hex when rendering products and filter. Used in conjunctio
 Sort filters/dropdowns menu to be shown in alphabetical order.
 
 	$(selector).ysFilter({sortFiltersAlphabetically: false})
+	
+#### alsoMatchChildrenCategories ####
+
+*Default* `false`  
+*Expects* `boolean`
+
+Seeting this to true allows to also add children category products to filter.
+
+	$(selector).ysFilter({alsoMatchChildrenCategories: false})
 
 
 #### onItem ####
@@ -293,6 +302,10 @@ Wrap repeating objects. Wraps each individual item.
 
 **Property** `inner: '<div class="group">'`  
 Wrapper per group, groups appear in sizes and categories. This does not wrap the whole filter only a group within that filter.
+
+**Property** `inner: '<div class="group">'`  
+Wrapper per group, groups appear in sizes and categories. This does not wrap the whole filter only a group within that filter.
+
 
 
 ### Data Types ###

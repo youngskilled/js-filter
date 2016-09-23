@@ -1786,7 +1786,8 @@
 		itemTotalClass: 'js-items-total',
 		allItemsTotalClass: 'js-allItems-total',
 		currentTotalClass: 'js-items-current',
-		swatchClass: 'colorList-color'
+		swatchClass: 'colorList-color',
+		alsoMatchChildrenCategories:false
 	};
 
 	var privateOpts = {
