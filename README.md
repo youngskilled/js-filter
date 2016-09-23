@@ -303,11 +303,6 @@ Wrap repeating objects. Wraps each individual item.
 **Property** `inner: '<div class="group">'`  
 Wrapper per group, groups appear in sizes and categories. This does not wrap the whole filter only a group within that filter.
 
-**Property** `inner: '<div class="group">'`  
-Wrapper per group, groups appear in sizes and categories. This does not wrap the whole filter only a group within that filter.
-
-
-
 ### Data Types ###
 
 The following functions are used with the attribute `data-type=""`. Data type are methods of the filter defining how this filter interacts with the data. Not all data-types have been created. If none have been chosen the **default** is `s1` which means select only one.
