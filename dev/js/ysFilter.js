@@ -7,10 +7,10 @@
 
 			/* Validate markup if in debug mode*/
 			if($this.set.debug === true) {
-				if($this.find('.' + $this.set.groupClass).length === 0 ){
+				if($this.find('.' + $this.set.groupClass).length === 0) {
 					console.log('no element with groupClass (.' + $this.set.groupClass + ') found');
 				}
-				if($this.find('#' + $this.set.itemContId).length === 0){
+				if($this.find('#' + $this.set.itemContId).length === 0) {
 					console.log('no item containet with itemContId (#' + $this.set.itemContId + ') found');
 				}
 			}
@@ -97,16 +97,15 @@
 				paramTypes = $this.filter.settings.filter;
 				totalItems = $this.filter.filter;
 
-
-
+				var categoryRegex = '^' + $this.set.category;
 				for(var category in categories) {
 
-					if($this.set.alsoMatchChildrenCategories){
+					if($this.set.alsoMatchChildrenCategories) {
 						/* Match all children categories */
-						var categoryRegex = '^' + $this.set.category;
+						categoryRegex = '^' + $this.set.category;
 					} else {
 						/* Only match current category */
-						var categoryRegex = '^' + $this.set.category +'$';
+						categoryRegex = '^' + $this.set.category + '$';
 					}
 
 					/* Add matching categories products to list of products still available to filter */
@@ -1007,7 +1006,7 @@
 
 					//We're effectively not counting any of the filters from the same category that we are in.
 					//If you filter one thing with categories then obviously that will make the other categories unselectable. 
-						//Unless products appear in more than one category.
+					//Unless products appear in more than one category.
 					//But based on all the other filters not the one that is currently selected are there other categories that can be still added?
 
 					//Choice has been filtered with but is not the latest chosen filter.
