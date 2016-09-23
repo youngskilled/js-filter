@@ -422,6 +422,9 @@ Category URI. Everything after the root and no slash is needed in the beginning.
 
 ## Changelog ##
 
+**Version 1.10.0** 
+Added a new possiblity for category to also include products of its children categories. Setting `alsoMatchChildrenCategories` to `true` enables that.
+
 **Version 1.9.0** 
 Added a new possiblity for a custom price template. Needs to be used in conjunction with `eachItemAttrs` to set a property on the price object `special` which will then invoke the `special` template within the price templates. Used in Artilleriet for grouped products.
 
