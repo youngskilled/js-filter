@@ -4,7 +4,17 @@
 	var priv = {
 		init: function() {
 			var $this = this;
-			
+
+			/* Validate markup if in debug mode*/
+			if($this.set.debug === true) {
+				if($this.find('.' + $this.set.groupClass).length === 0 ){
+					console.log('no element with groupClass (.' + $this.set.groupClass + ') found');
+				}
+				if($this.find('#' + $this.set.itemContId).length === 0){
+					console.log('no item containet with itemContId (#' + $this.set.itemContId + ') found');
+				}
+			}
+
 			//Allow css to handle display while loading.
 			$this.addClass('ysFilter--loading ysFilter--init');
 			$this.set.currentHash = window.location.hash;
@@ -87,12 +97,25 @@
 				paramTypes = $this.filter.settings.filter;
 				totalItems = $this.filter.filter;
 
+
+
 				for(var category in categories) {
-					var testCorrectCategory = new RegExp('^' + category + '$');
-					if(testCorrectCategory.test($this.set.category)) {
+
+					if($this.set.alsoMatchChildrenCategories){
+						/* Match all children categories */
+						var categoryRegex = '^' + $this.set.category;
+					} else {
+						/* Only match current category */
+						var categoryRegex = '^' + $this.set.category +'$';
+					}
+
+					/* Add matching categories products to list of products still available to filter */
+					var testCorrectCategory = new RegExp(categoryRegex);
+					if(testCorrectCategory.test(category)) {
 						tmpArr[i] = categories[category];
 						i++;
 					}
+
 				}
 
 				//These are all the relevant items for the rest of the filtering.
