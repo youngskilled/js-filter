@@ -191,6 +191,8 @@
 				var categoriesDesc = [];
 				var categoriesId = [];
 				var uniqueCategories = {};
+
+				if($this.set.debug === true) console.log('var catId, $filter', catId, $filter);
 				
 				html = '';
 				create = $filter.data('create');
