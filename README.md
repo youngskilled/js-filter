@@ -152,6 +152,15 @@ Make the renderer use hex when rendering products and filter. Used in conjunctio
 Sort filters/dropdowns menu to be shown in alphabetical order.
 
 	$(selector).ysFilter({sortFiltersAlphabetically: false})
+	
+#### alsoMatchChildrenCategories ####
+
+*Default* `false`  
+*Expects* `boolean`
+
+Seeting this to true allows to also add children category products to filter.
+
+	$(selector).ysFilter({alsoMatchChildrenCategories: false})
 
 
 #### onItem ####
@@ -294,7 +303,6 @@ Wrap repeating objects. Wraps each individual item.
 **Property** `inner: '<div class="group">'`  
 Wrapper per group, groups appear in sizes and categories. This does not wrap the whole filter only a group within that filter.
 
-
 ### Data Types ###
 
 The following functions are used with the attribute `data-type=""`. Data type are methods of the filter defining how this filter interacts with the data. Not all data-types have been created. If none have been chosen the **default** is `s1` which means select only one.
@@ -413,6 +421,9 @@ Category URI. Everything after the root and no slash is needed in the beginning.
 
 
 ## Changelog ##
+
+**Version 1.10.0** 
+Added a new possiblity for category to also include products of its children categories. Setting `alsoMatchChildrenCategories` to `true` enables that.
 
 **Version 1.9.0** 
 Added a new possiblity for a custom price template. Needs to be used in conjunction with `eachItemAttrs` to set a property on the price object `special` which will then invoke the `special` template within the price templates. Used in Artilleriet for grouped products.
