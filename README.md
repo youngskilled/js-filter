@@ -281,6 +281,18 @@ A string to be placed in render template for using Sale or News. A space is alwa
 		classProductSale: 'product-sale'
 	})
 
+#### newsURI, saleURI ####
+
+*Default* `new-arrivals`, `sale`  
+*Expects* `string`
+
+Enables filter to work on campaign pages where filterable products are selected based on if the product has the `newProduct` or `showAsOnSale` attribute set to `true`. This is because other pages use categories to filter these values.
+
+	$(selector).ysFilter({
+		newsURI: 'new-arrivals',
+		saleURI: 'sale'
+	})
+
 ### Template Options ###
 
 The template options allows you to customize the filter methods with extra classes wrap the filters with different containers etc. All following properties should be placed within `filter-id: {}`. The filter-id should pertain to the filter name i.e. `color`, `size`.
@@ -421,6 +433,9 @@ Category URI. Everything after the root and no slash is needed in the beginning.
 
 
 ## Changelog ##
+
+**Version 1.11.0** 
+Now possible to filter even on campaign pages such as news and sale.
 
 **Version 1.10.0** 
 Added a new possiblity for category to also include products of its children categories. Setting `alsoMatchChildrenCategories` to `true` enables that.

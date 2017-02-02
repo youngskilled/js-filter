@@ -79,6 +79,8 @@
 			var totalItems = null;
 			var filterItem = '';
 			var cat = '';
+			var isNewArrivals = false;
+			var isSale = false;
 
 			//We clone the array objects in the array however keep references. 
 			//Now we can sort the array without screwing original order.
@@ -94,25 +96,36 @@
 
 				//Select relevant products.
 				categories = $this.filter.filter.categories;
+				products = $this.filter.products;
 				paramTypes = $this.filter.settings.filter;
 				totalItems = $this.filter.filter;
 
-				/* Only match current category */
-				var categoryRegex = '^' + $this.set.category + '$';
-				for(var category in categories) {
+				isNewArrivals = $this.set.category === $this.set.newsURI;
+				isSale = $this.set.category === $this.set.saleURI;
 
-					if($this.set.alsoMatchChildrenCategories) {
-						/* Match all children categories */
-						categoryRegex = '^' + $this.set.category;
+				if(isNewArrivals || isSale) {
+					for (i = 0; i < products.length; i++) {
+						if(isNewArrivals && products[i].price.newProduct) tmpArr[tmpArr.length] = products[i].id;
+						if(isSale && products[i].price.showAsOnSale) tmpArr[tmpArr.length] = products[i].id;
 					}
+				} else {
+					/* Only match current category */
+					var categoryRegex = '^' + $this.set.category + '$';
+					for(var category in categories) {
 
-					/* Add matching categories products to list of products still available to filter */
-					var testCorrectCategory = new RegExp(categoryRegex);
-					if(testCorrectCategory.test(category)) {
-						tmpArr[i] = categories[category];
-						i++;
+						if($this.set.alsoMatchChildrenCategories) {
+							/* Match all children categories */
+							categoryRegex = '^' + $this.set.category;
+						}
+
+						/* Add matching categories products to list of products still available to filter */
+						var testCorrectCategory = new RegExp(categoryRegex);
+						if(testCorrectCategory.test(category)) {
+							tmpArr[i] = categories[category];
+							i++;
+						}
+
 					}
-
 				}
 
 				//These are all the relevant items for the rest of the filtering.
@@ -211,8 +224,6 @@
 				var categoriesDesc = [];
 				var categoriesId = [];
 				var uniqueCategories = {};
-
-				if($this.set.debug === true) console.log('var catId, $filter', catId, $filter);
 				
 				html = '';
 				create = $filter.data('create');
@@ -1772,6 +1783,8 @@
 		outputChosenFiltersId: false,
 		forceHex: false,
 		sortFiltersAlphabetically: false,
+		newsURI: 'new-arrivals',
+		saleURI: 'sale',
 		undefinedCat: 'Unsorted',
 		undefinedCatId: 'unsorted',
 		itemContId: 'filterItems',
