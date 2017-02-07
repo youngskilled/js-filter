@@ -102,8 +102,9 @@
 
 				isNewArrivals = $this.set.category === $this.set.newsURI;
 				isSale = $this.set.category === $this.set.saleURI;
+				$this.set.isCampaignURL = (isNewArrivals || isSale);
 
-				if(isNewArrivals || isSale) {
+				if($this.set.isCampaignURL) {
 					for (i = 0; i < products.length; i++) {
 						if(isNewArrivals && products[i].price.newProduct) tmpArr[tmpArr.length] = products[i].id;
 						if(isSale && products[i].price.showAsOnSale) tmpArr[tmpArr.length] = products[i].id;
@@ -243,7 +244,13 @@
 							sortedFilters[cat][v] = relevantFilters[cat][v];
 						});
 				} else {
-					sortedFilters = relevantFilters;
+					Object.keys(relevantFilters[cat])
+						.forEach(function(v, i) {
+							if(sortedFilters[cat] === undefined) {
+								sortedFilters[cat] = [];
+							}
+							sortedFilters[cat][v] = relevantFilters[cat][v];
+						});
 				}
 
 				for (var underCat in sortedFilters[cat]) {
@@ -256,7 +263,7 @@
 					if(typeof desc !== 'object' && desc.indexOf('::') !== -1 || cat === 'categories') {
 						//Filter out categories not in initial category. 
 						//Products can be even found in other categories that are not relevant.
-						if(underCat.indexOf($this.set.category) !== 0) continue;
+						if(underCat.indexOf($this.set.category) !== 0 && !$this.set.isCampaignURL) continue;
 						//Split descriptions of the different categories.
 						categoriesDesc = desc.split('::');
 						categoriesId = underCat.split('/');
@@ -849,7 +856,7 @@
 				var uriValue = (value === $this.set.undefinedCatId) ? undefined : value;
 
 				for(var urls in totalItems[filterId]) {
-					if(urls.indexOf($this.set.category) !== 0) continue;
+					if(urls.indexOf($this.set.category) !== 0 && !$this.set.isCampaignURL) continue;
 
 					//Does URI exist in URL?
 					if(uriValue === urls.split('/')[catDepth]) {
@@ -1465,13 +1472,20 @@
 			var $this = this;
 			var clearImageLine = false;
 			var finalReplace = options.finalReplace || false;
+			var canonicalParts; 
 
 			//Generic non-item specific properties.
 			obj.image = typeof obj.image === 'object' ? obj.image : [obj.image];
 			obj.hash = $this.set.currentHash.indexOf('#') === -1 ? '#' + $this.set.currentHash : $this.set.currentHash;
 			obj.root = encodeURIComponent(window.location.origin);
 			obj.locale = priv.getLocale();
-			obj.category = $this.set.category;
+			if($this.set.isCampaignURL && obj.canonicalUri) {
+				canonicalParts = obj.canonicalUri.split('/');
+				canonicalParts.pop();
+				obj.category = canonicalParts.join('/');
+			} else {
+				obj.category = $this.set.category;
+			}
 
 			itemTemplate = itemTemplate.replace(/\{(.+?)\}/g, function(value, text) {
 				//Replace text with property only if property exists.
@@ -1809,6 +1823,7 @@
 		currentHash: '',
 		latestCat: '',
 		resetLatestCat: false,
+		isCampaignURL: false,
 		currentItems: [],
 		oldLimit: null,
 		relevantFilters: null,

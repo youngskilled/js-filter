@@ -286,7 +286,8 @@ A string to be placed in render template for using Sale or News. A space is alwa
 *Default* `new-arrivals`, `sale`  
 *Expects* `string`
 
-Enables filter to work on campaign pages where filterable products are selected based on if the product has the `newProduct` or `showAsOnSale` attribute set to `true`. This is because other pages use categories to filter these values.
+Enables filter to work on campaign pages where filterable products are selected based on if the product has the `newProduct` or `showAsOnSale` attribute set to `true`. This is because other pages use categories to filter these values.   
+**Important** `canonicalUri` needs to be included as product data for product links to work correctly.
 
 	$(selector).ysFilter({
 		newsURI: 'new-arrivals',
@@ -433,6 +434,9 @@ Category URI. Everything after the root and no slash is needed in the beginning.
 
 
 ## Changelog ##
+
+**Version 1.11.1** 
+Categories weren't showing up when filtering on campaign pages. Now working. `canonicalUri` for product links to work correctly.
 
 **Version 1.11.0** 
 Now possible to filter even on campaign pages such as news and sale.
